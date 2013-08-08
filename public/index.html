@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HealthCare Costs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Nanda Yadav">
+    <script src="/js/d3.v3.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+    <script src="/js/underscore-min.js"></script>
+    <script src="/js/colorbrewer.js"></script>
+    <script src="/js/topojson.v0.min.js"></script>
+    <!-- Le styles -->
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+  </head>
+  <style type="text/css">
+    body {
+      background-color: #215263;
+    }
+    path {
+      fill: #ccc;
+      stroke: #215263;
+      opacity: 1.0;
+    }
+    
+    circle {
+      stroke: #000;
+      stroke-width: 0.5px;
+    }
+  </style>
+  <body>
+    <div class="span3">
+      <select name="map" id="mapSelector">
+        <option value="" selected="selected">Choose a stat</option>
+        <option value="std_deviation_payments">Std Deviation - Payments</option>
+        <option value="std_deviation_charges">Std Deviation - Charges</option>
+        <option value="std_deviation_discharges">Std Deviation - Discharges</option>
+        <option value="total_payments">Total Payments</option>
+        <option value="survey_not_recommended">Not Recommended</option>
+        <option value="survey_definitely_recommended">Definitely Recommended</option>
+        <option value="count">Number of records</option>
+      </select>
+    </div>
+    <div id="chart"></div>
+    <div id="map"></div>
+    <script src="js/main.js"></script>
+  </body>
+</html>

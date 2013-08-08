@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HealthCare Costs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Nanda Yadav">
+    <script src="/js/d3.v3.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+    <script src="/js/underscore-min.js"></script>
+    <script src="/js/colorbrewer.js"></script>
+    <script src="/js/coffee-script.js"></script>
+    <script src="/js/topojson.v0.min.js"></script>
+    <script src="/js/d3.hexbin.v0.min.js"></script>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
+    <!-- Le styles -->
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+  </head>
+  <style>
+
+circle {
+  stroke: #000;
+  stroke-width: 0.2px;
+  fill: #C34BBD;
+  fill-opacity: 0.5;
+}
+
+text {
+  fill: #fff;
+ }
+    
+.axis line {
+  fill: none;
+  stroke-width: 2.0px;
+  stroke: #ebebeb;
+}
+.axis path {
+  fill: none;
+  stroke: #ebebeb;
+  shape-rendering: crispEdges;
+}
+
+/*.users {
+  stroke: none;
+}*/
+
+.songs {
+  stroke: none;
+}
+
+line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1px;
+/*  shape-rendering: crispEdges;*/
+}
+
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: 0.325;
+  shape-rendering: crispEdges;
+}
+
+.hexagon {
+  fill: none;
+/*  stroke: #0B221D;
+  stroke-width: .5px;*/
+}
+
+.chart {
+  background-color: #0B221D;
+  width: 1000px;
+  float: left;
+}
+
+body {
+  background-color: #0B221D;
+}
+
+#controls {
+  margin-left: 10px;
+  color: #fff;
+}
+
+.bar {
+  fill: red;
+}
+
+.ui-tooltip {
+  background: black;
+  font: 10px "Helvetica Neue", Sans-Serif;
+  color: white;
+}
+
+#map path {
+      fill: #ccc;
+      stroke: #fff;
+      opacity: 1.0;
+    }
+
+
+</style>
+<div id="chart" class="chart"></div>
+<div id="chart1" class="chart"></div>
+<div id="map"></div>
+<script src="/geo_chart.js"></script>
