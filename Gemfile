@@ -10,8 +10,8 @@ gem 'nokogiri'
 gem 'pg'
 gem 'geocoder'
 gem 'descriptive-statistics'
-#gem 'rega', :git => 'git://github.com/nandayadav/rega.git'
-gem 'rega', :path => '~/Documents/github_repos/rega'
+gem 'rega', :git => 'git://github.com/nandayadav/rega.git'
+#gem 'rega', :path => '~/Documents/github_repos/rega'
 
 
 # To use ActiveModel has_secure_password

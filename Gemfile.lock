@@ -1,5 +1,6 @@
-PATH
-  remote: ~/Documents/github_repos/rega
+GIT
+  remote: git://github.com/nandayadav/rega.git
+  revision: 3d5147359c61b8f4dc887573587f84ca689e54ef
   specs:
     rega (0.0.1)
 
