@@ -15,7 +15,7 @@
       };
       this.selected = [];
       this.width = 800 - this.margin.left - this.margin.right;
-      this.height = 100 - this.margin.top - this.margin.bottom;
+      this.height = 200 - this.margin.top - this.margin.bottom;
       this.svg = d3.select(this.div).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     }
 
@@ -61,7 +61,7 @@
           return selected.push(d);
         }
       });
-      return this.geo.renderSelected(selected);
+      return this.geo.renderSelected(selected, this.indicator);
     };
 
     HexChart.prototype.brushEnd = function() {};
@@ -115,6 +115,8 @@
     function GeoChart(topology, div) {
       this.topology = topology;
       this.div = div;
+      this.renderSelected = __bind(this.renderSelected, this);
+
       this.mouseUp = __bind(this.mouseUp, this);
 
       this.mouseDown = __bind(this.mouseDown, this);
@@ -136,6 +138,10 @@
       this.precisionFormat = d3.format(".2f");
       this.states = [];
       this.circles = [];
+      this.selected = {
+        charges: [],
+        payments: []
+      };
       this.color = d3.scale.quantize().range(colorbrewer.Reds[9]);
       this.svg = d3.select(this.div).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     }
@@ -209,11 +215,22 @@
       });
     };
 
-    GeoChart.prototype.renderSelected = function(providers) {
-      var ids;
+    GeoChart.prototype.renderSelected = function(providers, bucket) {
+      var ids, intersection, other, otherAttr;
       ids = _.pluck(providers, 'provider_id');
+      this.selected[bucket] = ids;
+      otherAttr = bucket === 'charges' ? 'payments' : 'charges';
+      other = this.selected[otherAttr];
+      intersection = [];
+      if (_.isEmpty(other) && !_.isEmpty(ids)) {
+        intersection = ids;
+      } else if (_.isEmpty(ids) && !_.isEmpty(other)) {
+        intersection = other;
+      } else {
+        intersection = _.intersection(ids, other);
+      }
       return this.svg.selectAll("circle").each(function(d) {
-        if (_.contains(ids, d.provider_id)) {
+        if (_.contains(intersection, d.provider_id)) {
           return d3.select(this).attr("r", 4).classed("shown", true);
         } else {
           return d3.select(this).attr("r", 0).classed("shown", false);
@@ -255,10 +272,13 @@
   };
 
   renderContainer = function(error, data) {
-    var container, first;
+    var cloned, container, first, second;
     container = new HexContainer('#chart');
-    first = new HexChart(data, geoChart, container, 'payments', 0);
-    return first.render();
+    first = new HexChart(data, geoChart, container, 'charges', 0);
+    first.render();
+    cloned = JSON.parse(JSON.stringify(data));
+    second = new HexChart(cloned, geoChart, container, 'payments', 100);
+    return second.render();
   };
 
   d3.json("us-named.json", renderMap);

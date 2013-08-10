@@ -10,7 +10,7 @@ class HexContainer
     @selected = []
     
     @width = 800 - @margin.left - @margin.right
-    @height = 100 - @margin.top - @margin.bottom
+    @height = 200 - @margin.top - @margin.bottom
     
     @svg = d3.select(@div).append("svg")
                       .attr("width", @width + @margin.left + @margin.right)
@@ -76,7 +76,7 @@ class HexChart
     @data.forEach (d) ->
       selected.push(d) if (e[0] <= d.x && d.x <= e[1])
 
-    @geo.renderSelected selected
+    @geo.renderSelected(selected, @indicator)
     
   brushEnd: () =>
     # e = d3.event.target.extent()
@@ -157,6 +157,7 @@ class GeoChart
                              
     @states = []
     @circles = []
+    @selected = {charges: [], payments: []}
     
     @color = d3.scale.quantize()
                               .range(colorbrewer.Reds[9])
@@ -222,10 +223,21 @@ class GeoChart
       d3.select(this).attr("r", 4)
     
   #Render selected providers, (show/hide already rendered circles) 
-  renderSelected: (providers) ->
+  renderSelected: (providers, bucket) =>
     ids = _.pluck(providers, 'provider_id')
+    @selected[bucket] = ids
+    otherAttr = if bucket == 'charges' then 'payments' else 'charges'
+    other = @selected[otherAttr]
+    intersection = []
+    if (_.isEmpty(other) && !_.isEmpty(ids))
+      intersection = ids
+    else if (_.isEmpty(ids) && !_.isEmpty(other))
+      intersection = other
+    else
+      intersection = _.intersection(ids, other)
+      
     @svg.selectAll("circle").each (d) ->
-      if _.contains(ids, d.provider_id)
+      if _.contains(intersection, d.provider_id)
         d3.select(this).attr("r", 4).classed("shown", true)
       else
         d3.select(this).attr("r", 0).classed("shown", false)
@@ -265,10 +277,11 @@ renderMap = (error, data) ->
   
 renderContainer = (error, data) ->
   container = new HexContainer('#chart')
-  first = new HexChart(data, geoChart, container, 'payments', 0)
+  first = new HexChart(data, geoChart, container, 'charges', 0)
   first.render()
-  # second = new HexChart(data, geoChart, container, 'charges', 120)
-  # second.render()
+  cloned = JSON.parse(JSON.stringify(data))
+  second = new HexChart(cloned, geoChart, container, 'payments', 100)
+  second.render()
   
 d3.json "us-named.json", renderMap
 
