@@ -1,57 +1,158 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="utf-8">
-    <title>HealthCare Costs</title>
+    <title>In-patient Hospital Charges : Interactive</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="Nanda Yadav">
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.css" rel="stylesheet" media="screen">
+    <style>
+
+circle {
+  stroke: #000;
+  stroke-width: 0.2px;
+  fill: #C34BBD;
+  fill-opacity: 0.5;
+}
+
+text {
+  fill: #fff;
+ }
+    
+.axis line {
+  fill: none;
+  stroke-width: 2.0px;
+  stroke: #ebebeb;
+}
+.axis path {
+  fill: none;
+  stroke: #ebebeb;
+  shape-rendering: crispEdges;
+}
+
+/*.users {
+  stroke: none;
+}*/
+
+.songs {
+  stroke: none;
+}
+
+line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1px;
+/*  shape-rendering: crispEdges;*/
+}
+
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: 0.325;
+  shape-rendering: crispEdges;
+}
+
+.hexagon {
+  fill: none;
+/*  stroke: #0B221D;
+  stroke-width: .5px;*/
+}
+
+.inactive {
+  display: none;
+}
+
+body {
+  background-color: #000;
+}
+
+#controls {
+  margin-left: 10px;
+  color: #fff;
+}
+
+.bar {
+  fill: red;
+}
+
+.ui-tooltip {
+  background: black;
+  font: 10px "Helvetica Neue", Sans-Serif;
+  color: white;
+}
+
+#map path {
+      fill: #ccc;
+      stroke: #fff;
+      opacity: 1.0;
+    }
+
+
+</style>
+  </head>
+  <body style="background-color: #1B4550">
+    <div class="container" style="margin-top: 20px;">
+      <div class="btn-group pull-right btn-group-sm">
+        <button type="button" class="btn btn-default active">DRG</button>
+        <button type="button" class="btn btn-default">States</button>
+        <button type="button" class="btn btn-default">About</button>
+      </div>
+      <div class="row" style="color: white;">
+        <!-- Split button -->
+        <div class="btn-group btn-group-sm">
+          <button type="button" class="btn btn-default" id="select-msg">Select a DRG(Diagnostic Related Group)</button>
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+          </ul>
+        </div>
+        <hr/>
+      </div>
+
+      <div class="row">
+        <div id="chart" class=""></div>
+        <div id="provider-info" style="color: white;">
+          <p>
+            Displaying <span class="label label-danger" id="provider-count"></span> providers with Total charges between 
+            <span class="label label-danger" id="charges-left"></span> and <span class="label label-danger" id="charges-right"></span> And
+            Total Average Payments between <span class="label label-danger" id="payments-left"></span> and <span class="label label-danger" id="payments-right"></span>
+          </p>
+        </div>
+        <hr/>
+      </div>
+      
+      <div class="row">
+        <div id="map" class="col-md-10"></div>
+        <div class="col-md-2 panel" style="min-height: 210px;padding-top: 5px;">
+          <div class="input-group input-group-sm" style="padding-bottom: 2px;">
+            <span class="input-group-addon">Charges</span>
+            <input type="text" class="form-control" id="charges-text">
+          </div>
+          <div class="input-group input-group-sm" style="padding-bottom: 2px;">
+            <span class="input-group-addon">Payments</span>
+            <input type="text" class="form-control" id="payments-text">
+          </div>
+          <div class="input-group input-group-sm">
+            <span class="input-group-addon">Discharges</span>
+            <input type="text" class="form-control" id="discharges-text">
+          </div>
+          <div class="panel-body"><p></p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/js/d3.v3.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
     <script src="/js/underscore-min.js"></script>
     <script src="/js/colorbrewer.js"></script>
+    <script src="/js/coffee-script.js"></script>
     <script src="/js/topojson.v0.min.js"></script>
-    <!-- Le styles -->
-    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-  </head>
-  <style type="text/css">
-    body {
-      background-color: #215263;
-    }
-    path {
-      fill: #ccc;
-      stroke: #215263;
-      opacity: 1.0;
-    }
-    
-    circle {
-      stroke: #000;
-      stroke-width: 0.5px;
-    }
-  </style>
-  <body>
-    <div class="span3">
-      <select name="map" id="mapSelector">
-        <option value="" selected="selected">Choose a stat</option>
-        <option value="std_deviation_payments">Std Deviation - Payments</option>
-        <option value="std_deviation_charges">Std Deviation - Charges</option>
-        <option value="std_deviation_discharges">Std Deviation - Discharges</option>
-        <option value="total_payments">Total Payments</option>
-        <option value="survey_not_recommended">Not Recommended</option>
-        <option value="survey_definitely_recommended">Definitely Recommended</option>
-        <option value="count">Number of records</option>
-      </select>
-    </div>
-    <div id="chart"></div>
-    <div id="map"></div>
-    <script src="js/main.js"></script>
+    <script src="/js/d3.hexbin.v0.min.js"></script>
+    <script src="//code.jquery.com/jquery.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="/geo_chart.js"></script>
   </body>
 </html>

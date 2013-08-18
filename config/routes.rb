@@ -15,6 +15,7 @@ Healthcare::Application.routes.draw do
   resources :providers do
     collection do 
       get 'states'
+      get 'drgs'
       get 'drg_stats'
       get 'bar_chart'
       get 'inpatient_charges'

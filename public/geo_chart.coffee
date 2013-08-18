@@ -2,15 +2,15 @@ class HexContainer
   constructor: (@div) ->
 
     @margin = 
-      top: 20
-      bottom: 10
-      left: 10
+      top: 5
+      bottom: 0
+      left: 0
       right: 10
       
     @selected = []
     
     @width = 800 - @margin.left - @margin.right
-    @height = 200 - @margin.top - @margin.bottom
+    @height = 140 - @margin.top - @margin.bottom
     
     @svg = d3.select(@div).append("svg")
                       .attr("width", @width + @margin.left + @margin.right)
@@ -41,7 +41,7 @@ class HexChart
                         .scale(@xScale)
                         .ticks(7)
                         .tickSize(10)
-                        .tickPadding("10")
+                        .tickPadding("4")
                         .orient("bottom")
                         
     @hexbin = d3.hexbin()
@@ -50,8 +50,8 @@ class HexChart
                         
     @brush = d3.svg.brush()
                       .x(@xScale)
-                      .on("brush", this.brushMove)
-                      .on("brushend", this.brushEnd)
+                      .on("brush", @brushMove)
+                      .on("brushend", @brushEnd)
     
     #accessors from container                  
     @svg = @container.svg
@@ -69,6 +69,10 @@ class HexChart
               .attr("class", "mesh")
               .attr("width", @width)
               .attr("height", @hexHeight)
+              
+  updateData: (data) ->
+    @data = data
+    
                       
   brushMove: () =>
     e = d3.event.target.extent()
@@ -76,7 +80,7 @@ class HexChart
     @data.forEach (d) ->
       selected.push(d) if (e[0] <= d.x && d.x <= e[1])
 
-    @geo.renderSelected(selected, @indicator)
+    @geo.renderSelected(selected, @indicator, e[0], e[1])
     
   brushEnd: () =>
     # e = d3.event.target.extent()
@@ -95,17 +99,17 @@ class HexChart
   render: () ->
     points = []
     #@xScale.domain([0, d3.max(@data, this.xIndicator)])
-    @xScale.domain(d3.extent(@data, this.xIndicator))
+    @xScale.domain(d3.extent(@data, @xIndicator))
     @xAxis.scale(@xScale)
     @data.forEach (d, i) =>
-      d.x = this.xIndicator(d)
+      d.x = @xIndicator(d)
       d.y = 1
       _.range(1, 43, 3).forEach (y) =>
         points.push [@xScale(d.x), @yScale(y)]
 
     @color.domain([0, d3.max(@hexbin(points), (d) -> d.length * 0.5)])
     
-    #@svg.select("g.x.axis").remove()
+    @svg.select("g.x.axis").remove()
     @svg.append("g")
                   .attr("class", "x axis")
                   .attr("transform", "translate(0," + @hexHeight + ")")
@@ -131,29 +135,31 @@ class HexChart
       .attr("y", 0)
       .attr("height", @hexHeight)
       
-    @text.text(@data[0].drg)
+    #@text.text(@data[0].drg)
     
     @geo.renderProviders(@data)
       
 class GeoChart
   constructor: (@topology, @div) ->
     @margin = 
-      top: 5
+      top: 0
       bottom: 0
-      left: 10
-      right: 10
+      left: 0
+      right: 0
       
-    @width = 1200 - @margin.left - @margin.right
-    @height = 700 - @margin.top - @margin.bottom
+    @width = 900 - @margin.left - @margin.right
+    @height = 640 - @margin.top - @margin.bottom
                       
     @projection = d3.geo.albersUsa()
-                                     .scale(1200)
-                                     .translate([550, 330])
+                                     .scale(1100)
+                                     .translate([480, 270])
                                      
     @path = d3.geo.path()
                              .projection(@projection)
                              
     @precisionFormat = d3.format(".2f")
+
+    @centered
                              
     @states = []
     @circles = []
@@ -168,7 +174,39 @@ class GeoChart
                       .attr("height", @height + @margin.top + @margin.bottom)
                   .append("g")
                       .attr("transform", "translate(" + @margin.left + "," + @margin.top + ")")
-   
+  
+  
+  handleStateClick: (d) =>
+    x = null
+    y = null
+    z = null
+
+    if (d && @centered != d)
+      centroid = @path.centroid(d)
+      x = centroid[0]
+      y = centroid[1]
+      k = 4
+      @centered = d
+    else
+      x = @width / 2
+      y = @height / 2
+      k = 1;
+      @centered = null
+    
+    # @states.classed("active", @centered && (d) ->  d == @centered)
+    # @states.forEach (d) =>
+    #   if (@centered && (d) -> d == @centered)
+    #     d3.select(this).style("display: block;")
+    #   else
+    #     d3.select(this).style("display: none;")
+    @states.classed("inactive", @centered && (d) -> d != @centered )
+        
+
+    @states.transition()
+        .duration(750)
+        .attr("transform", "translate(" + @width / 2 + "," + @height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+        .style("stroke-width", 1.5 / k + "px")
+    
   #Render the map, excluding PR and virgin islands
   render: () ->
     geometries = topojson.object(@topology, @topology.objects.states)
@@ -178,6 +216,7 @@ class GeoChart
         .data(geometries)
       .enter().append("path")
         .attr("d", @path)
+        .on("click", @handleStateClick)
     
   #Render chloropeth
   renderChrolopeth: (providers) ->
@@ -211,6 +250,19 @@ class GeoChart
         circle.attr("r", 0)
       
       
+  mouseOver: (d) =>
+    $(".panel-body p").text(d.provider_name + ", " + d.provider_city + ", " + d.state_code)
+    $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges))
+    $("#payments-text").val("$ " + Math.floor(d.avg_total_payments))
+    $("#discharges-text").val("$ " + d.total_discharges)
+    
+    
+    
+  mouseOut: (d) =>
+    $("#charges-text").val("")
+    $("#payments-text").val("")
+    $("#discharges-text").val("")
+    
   mouseDown: (d) =>
     selected = d3.select(d3.event.target)
     @findSimilar(d)
@@ -223,7 +275,7 @@ class GeoChart
       d3.select(this).attr("r", 4)
     
   #Render selected providers, (show/hide already rendered circles) 
-  renderSelected: (providers, bucket) =>
+  renderSelected: (providers, bucket, left, right) =>
     ids = _.pluck(providers, 'provider_id')
     @selected[bucket] = ids
     otherAttr = if bucket == 'charges' then 'payments' else 'charges'
@@ -235,6 +287,15 @@ class GeoChart
       intersection = other
     else
       intersection = _.intersection(ids, other)
+    d3.select("#provider-count").text(intersection.length)
+    leftText = "$ " + Math.floor(left)
+    rightText = "$ " + Math.floor(right)
+    if bucket == 'charges'
+      d3.select("#charges-left").text(leftText)
+      d3.select("#charges-right").text(rightText)
+    else
+      d3.select("#payments-left").text(leftText)
+      d3.select("#payments-right").text(rightText)
       
     @svg.selectAll("circle").each (d) ->
       if _.contains(intersection, d.provider_id)
@@ -246,6 +307,8 @@ class GeoChart
     
   #Initial Render of all providers
   renderProviders: (providers) ->
+    that = @
+    d3.select("#provider-count").text(providers.length)
     geoPositions = []
     providers.forEach (o) =>
       location = [+o.longitude, +o.latitude]
@@ -258,10 +321,14 @@ class GeoChart
     .enter().append("circle")
       .attr("class", "shown")
       .attr("title", @tooltipText)
-      .on("mouseover", (d) -> d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0))
-      .on("mouseout", (d) -> d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2))
-      .on("mousedown", @mouseDown)
-      .on("mouseup", @mouseUp)
+      .on("mouseover", (d) -> 
+        d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0)
+        that.mouseOver(d)
+      )
+      .on("mouseout", (d) -> 
+        d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2)
+        that.mouseOver(d)
+      )
       .attr("r", 4)
       .attr("cx", (d, i) -> geoPositions[i][0])
       .attr("cy", (d, i) -> geoPositions[i][1])
@@ -270,21 +337,54 @@ class GeoChart
 
 #Some globals
 geoChart = null
+drgs = []
+container = new HexContainer('#chart')
+first = null
+second = null
+
+$ ->
+  $(".dropdown-menu").on("click", "li a", (e) ->
+    $target = $(e.currentTarget)
+    href = $target.attr('href')
+    name = $target.text()
+    $("#select-msg").text(name)
+    
+    id = href.replace("#", "")
+    d3.json "/providers/inpatient_charges.json?id=" + id, renderContainer
+  )
+
+
+storeDrgs = (error, data) ->
+  drgs = data
+  data.forEach (d) ->
+    elem = "<li><a href='#" + d.id + "'>" + d.definition + "</a></li>"
+    $(".dropdown-menu").append(elem)
+  
 
 renderMap = (error, data) ->
   geoChart = new GeoChart(data, '#map')
   geoChart.render()   
   
 renderContainer = (error, data) ->
-  container = new HexContainer('#chart')
-  first = new HexChart(data, geoChart, container, 'charges', 0)
-  first.render()
+  if !first
+    first = new HexChart(data, geoChart, container, 'charges', 0)
+  else
+    first.data = data
+
   cloned = JSON.parse(JSON.stringify(data))
-  second = new HexChart(cloned, geoChart, container, 'payments', 100)
+  if !second
+    second = new HexChart(cloned, geoChart, container, 'payments', 80)
+  else
+    second.data = cloned
+    
+  first.render()
   second.render()
   
+# $ ->
+d3.json "/providers/drgs.json", storeDrgs
+  
+    
 d3.json "us-named.json", renderMap
 
-d3.json "/providers/inpatient_charges.json", renderContainer
 
 

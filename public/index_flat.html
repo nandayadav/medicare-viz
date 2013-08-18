@@ -1,12 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>HealthCare Costs</title>
+    <title>Medicare Interactive</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="Nanda Yadav">
     <script src="/js/d3.v3.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
@@ -15,16 +12,21 @@
     <script src="/js/coffee-script.js"></script>
     <script src="/js/topojson.v0.min.js"></script>
     <script src="/js/d3.hexbin.v0.min.js"></script>
+
+    <!-- Loading Bootstrap -->
+    <link href="css/bootstrap.css" rel="stylesheet">
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
-    <!-- Le styles -->
 
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!-- Loading Flat UI -->
+    <link href="css/flat-ui.css" rel="stylesheet">
+
+    <link rel="shortcut icon" href="images/favicon.ico">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
     <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="js/html5shiv.js"></script>
     <![endif]-->
-
-  </head>
-  <style>
+    <style>
 
 circle {
   stroke: #000;
@@ -76,10 +78,8 @@ line {
   stroke-width: .5px;*/
 }
 
-.chart {
-  background-color: #0B221D;
-  width: 1000px;
-  float: left;
+.inactive {
+  display: none;
 }
 
 body {
@@ -109,7 +109,41 @@ body {
 
 
 </style>
-<div id="chart" class="chart"></div>
-<div id="chart1" class="chart"></div>
-<div id="map"></div>
-<script src="/geo_chart.js"></script>
+  </head>
+  <body style="background-color: #1B4550">
+    <div class="container">
+      <div class="row">
+        <div id="info" style="color: white;">
+          <select class="form-control">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </select>
+        </div>
+        <div class="pull-right">
+          <div class="span3">
+            <div class="btn-toolbar">
+              <div class="btn-group">
+                <a class="btn active" href="#fakelink">DRG</a>
+                <a class="btn btn-primary" href="#fakelink">State Rankings</a>
+                <a class="btn btn-primary" href="#fakelink">About</a>
+              </div>
+            </div> 
+          </div>
+        </div>
+      </div>
+
+      <div class="row span12">
+        <div id="chart" class="span10"></div>
+        <div id="chart1"></div>
+        <div id="map"></div>
+      </div>
+    </div> <!-- /container -->
+
+    <script src="/geo_chart.js"></script>
+    <!-- Load JS here for greater good =============================-->
+
+  </body>
+</html>

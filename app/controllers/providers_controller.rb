@@ -14,8 +14,13 @@ class ProvidersController < ApplicationController
     render :json => @states.to_json(:methods => [:total_payments, :std_deviation_payments, :std_deviation_charges, :std_deviation_discharges, :count], :root => false)
   end
   
+  def drgs
+    drgs = DiagnosticRelatedGroup.all
+    render :json => drgs.to_json(:only => [:definition, :id], :root => false)
+  end
+  
   def inpatient_charges
-    drg_id = DiagnosticRelatedGroup.all.map(&:id).sample
+    drg_id = DiagnosticRelatedGroup.find params[:id].to_i
     charges = InpatientCharge.where(:diagnostic_related_group_id => drg_id, :state_id => nil).includes([:diagnostic_related_group, :provider])#.select([:provider_id, :avg_total_payments, :avg_covered_charges])
     #render :json => charges.to_json(:root => false, :include => :provider, :methods => [:state_code])
     render :json => charges.to_json(:root => false)
