@@ -52,6 +52,7 @@ class HexChart
                       .x(@xScale)
                       .on("brush", @brushMove)
                       .on("brushend", @brushEnd)
+                  
     
     #accessors from container                  
     @svg = @container.svg
@@ -129,13 +130,11 @@ class HexChart
         .style("fill", (d) => @color(d.length))
         
     @svg.append("g")
-      .attr("class", "brush")
-      .call(@brush)
-      .selectAll("rect")
-      .attr("y", 0)
-      .attr("height", @hexHeight)
-      
-    #@text.text(@data[0].drg)
+          .attr("class", "brush")
+          .call(@brush)
+          .selectAll("rect")
+          .attr("y", 0)
+          .attr("height", @hexHeight)
     
     @geo.renderProviders(@data)
       
@@ -254,11 +253,12 @@ class GeoChart
     $(".panel-body p").text(d.provider_name + ", " + d.provider_city + ", " + d.state_code)
     $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges))
     $("#payments-text").val("$ " + Math.floor(d.avg_total_payments))
-    $("#discharges-text").val("$ " + d.total_discharges)
+    $("#discharges-text").val(d.total_discharges)
     
     
     
   mouseOut: (d) =>
+    $(".panel-body p").text("")
     $("#charges-text").val("")
     $("#payments-text").val("")
     $("#discharges-text").val("")
@@ -327,7 +327,7 @@ class GeoChart
       )
       .on("mouseout", (d) -> 
         d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2)
-        that.mouseOver(d)
+        that.mouseOut(d)
       )
       .attr("r", 4)
       .attr("cx", (d, i) -> geoPositions[i][0])

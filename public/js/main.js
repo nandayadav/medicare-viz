@@ -1,9 +1,10 @@
-   var margin = {top: 5, right: 0, bottom: 0, left: 50};
-   var width = 1200 - margin.left - margin.right,
-        height = 700 - margin.top - margin.bottom;
-        
-  var color = d3.scale.quantize()
-                              .range(colorbrewer.Reds[9]);
+   var margin = {top: 0, right: 0, bottom: 0, left: 0};
+   var width = 900 - margin.left - margin.right,
+        height = 640 - margin.top - margin.bottom;
+                              
+  var color = d3.scale.linear()
+                      .range(["white", "red"])
+                      .interpolate(d3.interpolateLab);
                               
   var bubbleColor = d3.scale.quantize()
                                 .range(colorbrewer.Blues[9]);
@@ -13,8 +14,8 @@
                                 
                        
   var projection = d3.geo.albersUsa()
-                                     .scale(1320)
-                                     .translate([640, 330]);
+                                     .scale(1100)
+                                     .translate([480, 270]);
     
   var path = d3.geo.path()
                              .projection(projection);
@@ -25,15 +26,15 @@
   var root, circles, nodes, pack_node, states, statesData;
   var geoPositions = [];
             
-  var svg = d3.select("#chart").append("svg")
+  var svg = d3.select("#map").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                   .append("g")
                       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
                     
-  d3.json("output.json", function(error, topology) {
-    //var geometries = topojson.object(topology, topology.objects.states).geometries;
-    var geometries = topojson.object(topology, topology.objects.output).geometries;
+  d3.json("us-named.json", function(error, topology) {
+    var geometries = topojson.object(topology, topology.objects.states).geometries;
+    //var geometries = topojson.object(topology, topology.objects.output).geometries;
     //var filtered = geometries.filter(function(d) { return d.properties.code == "TX"; });
     states = svg.selectAll("path")
         .data(geometries)
@@ -54,7 +55,7 @@
   
   function findStateColor(d) {
     var code = d.properties.code;
-    var selected = statesData.filter(function(s) { return s.abbreviation == code; })[0];
+    var selected = statesData.filter(function(s) { return s.abbreviation === code; })[0];
     if (selected) 
       return color(correctAttribute(selected));
     else //For puerto rico 
@@ -105,15 +106,25 @@
   }
   
   //Reload map with selected attribute/stat
-  function reloadChart() {
-    attribute = this.value;
+  function reloadChart(attr) {
+    attribute = attr;
     color.domain(d3.extent(statesData, correctAttribute)); 
     states.style("fill", findStateColor);
   }
   
+  // $(function() {
+  //   d3.select("#mapSelector")
+  //     .on("change", reloadChart);
+  // });
+  
   $(function() {
-    d3.select("#mapSelector")
-      .on("change", reloadChart);
+    $(".dropdown-menu").on("click", "li a", function(e) {
+      var $target, href, id;
+      $target = $(e.currentTarget);
+      href = $target.attr('href');
+      attr = href.replace("#", "");
+      reloadChart(attr);
+    });
   });
     
 

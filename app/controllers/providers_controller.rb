@@ -3,6 +3,7 @@ require 'opta/event'
 class ProvidersController < ApplicationController
   include Rega::Charts
   
+  
   def index
     @providers = Provider.all
     #@providers = Provider.limit(10)
@@ -12,6 +13,12 @@ class ProvidersController < ApplicationController
   def states
     @states = State.all
     render :json => @states.to_json(:methods => [:total_payments, :std_deviation_payments, :std_deviation_charges, :std_deviation_discharges, :count], :root => false)
+  end
+  
+  #Show provider
+  def show
+    @provider = Provider.where(:id => params[:id]).includes([:inpatient_charges]).first
+    render json: @provider
   end
   
   def drgs

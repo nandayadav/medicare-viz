@@ -30,13 +30,6 @@ text {
   shape-rendering: crispEdges;
 }
 
-/*.users {
-  stroke: none;
-}*/
-
-.songs {
-  stroke: none;
-}
 
 line {
   fill: none;
@@ -83,11 +76,9 @@ body {
 
 #map path {
       fill: #ccc;
-      stroke: #fff;
+      stroke: #000;
       opacity: 1.0;
     }
-
-
 
 
 </style>
@@ -95,70 +86,43 @@ body {
   <body style="background-color: #1B4550">
     <div class="container" style="margin-top: 20px;">
       <div class="btn-group pull-right btn-group-sm">
-        <a href="index.html" class="btn btn-default active">DRG</a>
-        <a href="states.html" class="btn btn-default">States</a>
+        <a href="index.html" class="btn btn-default">DRG</a>
+        <a href="index.html" class="btn btn-default active">States</a>
         <a href="index.html" class="btn btn-default">About</a>
       </div>
       <div class="row" style="color: white;">
         <!-- Split button -->
         <div class="btn-group btn-group-sm">
-          <button type="button" class="btn btn-default" id="select-msg">Select a DRG(Diagnostic Related Group)</button>
+          <button type="button" class="btn btn-default" id="select-msg">Choose a stat</button>
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
+            <li><a href='#std_deviation_payments'>Std Deviation - Payments</a></li>
+            <li><a href='#std_deviation_charges'>Std Deviation - Charges</a></li>
+            <li><a href='#std_deviation_discharges'>Std Deviation - Discharges</a></li>
+            <li><a href='#total_payments'>Total Avg. Payments</a></li>
+            <li><a href='#survey_not_recommended'>Patients Survey - Not Recommended</a></li>
+            <li><a href='#survey_definitely_recommended'>Patients Survey - Definitely Recommended</a></li>
+            
+<!--             <option value="std_deviation_payments">Std Deviation - Payments</option>
+            <option value="std_deviation_charges">Std Deviation - Charges</option>
+            <option value="std_deviation_discharges">Std Deviation - Discharges</option>
+            <option value="total_payments">Total Payments</option>
+            <option value="survey_not_recommended">Not Recommended</option>
+            <option value="survey_definitely_recommended">Definitely Recommended</option> -->
           </ul>
         </div>
         <hr/>
       </div>
 
       <div class="row">
-        <div id="chart" class=""></div>
-        <div id="provider-info" style="color: white;">
-          <p>
-            Displaying <span class="label label-danger" id="provider-count"></span> providers with Total charges between 
-            <span class="label label-danger" id="charges-left"></span> and <span class="label label-danger" id="charges-right"></span> And
-            Total Average Payments between <span class="label label-danger" id="payments-left"></span> and <span class="label label-danger" id="payments-right"></span>
-          </p>
-        </div>
-        <hr/>
       </div>
       
       <div class="row">
         <div id="map" class="col-md-10"></div>
-        <div class="col-md-2 panel" style="min-height: 210px;padding-top: 5px;">
-          <div class="input-group input-group-sm" style="padding-bottom: 2px;">
-            <span class="input-group-addon">Charges</span>
-            <input type="text" class="form-control" id="charges-text">
-          </div>
-          <div class="input-group input-group-sm" style="padding-bottom: 2px;">
-            <span class="input-group-addon">Payments</span>
-            <input type="text" class="form-control" id="payments-text">
-          </div>
-          <div class="input-group input-group-sm">
-            <span class="input-group-addon">Discharges</span>
-            <input type="text" class="form-control" id="discharges-text">
-          </div>
-          <div class="panel-body"><p></p></div>
-        </div>
       </div>
     </div>
-    
-    
-    <a data-toggle="modal" href="#myModal" class="btn btn-primary btn-lg">Launch demo modal</a>
-    <!-- Modal -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content" style="background-color: #ABCDE3; opacity: 0.9; width: 700px;">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title"></h4>
-          </div>
-          <div class="modal-body" id="difference">
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/js/d3.v3.min.js"></script>
@@ -172,7 +136,6 @@ body {
     <script src="//code.jquery.com/jquery.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
-    <script src="/geo_chart.js"></script>
-    <script src="js/difference.js"></script>
+     <script src="js/main.js"></script>
   </body>
 </html>

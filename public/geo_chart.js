@@ -237,10 +237,11 @@
       $(".panel-body p").text(d.provider_name + ", " + d.provider_city + ", " + d.state_code);
       $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges));
       $("#payments-text").val("$ " + Math.floor(d.avg_total_payments));
-      return $("#discharges-text").val("$ " + d.total_discharges);
+      return $("#discharges-text").val(d.total_discharges);
     };
 
     GeoChart.prototype.mouseOut = function(d) {
+      $(".panel-body p").text("");
       $("#charges-text").val("");
       $("#payments-text").val("");
       return $("#discharges-text").val("");
@@ -312,7 +313,7 @@
         return that.mouseOver(d);
       }).on("mouseout", function(d) {
         d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2);
-        return that.mouseOver(d);
+        return that.mouseOut(d);
       }).attr("r", 4).attr("cx", function(d, i) {
         return geoPositions[i][0];
       }).attr("cy", function(d, i) {
