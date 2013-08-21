@@ -11,6 +11,9 @@ gem 'pg'
 gem 'geocoder'
 gem 'descriptive-statistics'
 gem 'rega', :git => 'git://github.com/nandayadav/rega.git'
+gem 'active_model_serializers'
+gem 'capistrano'
+gem 'rvm-capistrano'
 #gem 'rega', :path => '~/Documents/github_repos/rega'
 
 
