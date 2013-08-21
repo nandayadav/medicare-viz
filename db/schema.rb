@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130708031723) do
+ActiveRecord::Schema.define(:version => 20130821192800) do
 
   create_table "diagnostic_related_groups", :force => true do |t|
     t.string   "definition"
@@ -47,6 +47,7 @@ ActiveRecord::Schema.define(:version => 20130708031723) do
     t.integer  "state_id"
     t.float    "latitude"
     t.float    "longitude"
+    t.string   "state_code"
   end
 
   add_index "providers", ["provider_id"], :name => "index_providers_on_provider_id"

@@ -250,7 +250,7 @@ class GeoChart
       
       
   mouseOver: (d) =>
-    $(".panel-body p").text(d.provider_name + ", " + d.provider_city + ", " + d.state_code)
+    $(".panel-body p").text(d.provider.name + ", " + d.provider.city + ", " + d.provider.state_code)
     $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges))
     $("#payments-text").val("$ " + Math.floor(d.avg_total_payments))
     $("#discharges-text").val(d.total_discharges)
@@ -311,7 +311,7 @@ class GeoChart
     d3.select("#provider-count").text(providers.length)
     geoPositions = []
     providers.forEach (o) =>
-      location = [+o.longitude, +o.latitude]
+      location = [+o.provider.longitude, +o.provider.latitude]
       geoPositions.push(@projection(location))
     
     #@circles.remove() if @circles
@@ -350,7 +350,7 @@ $ ->
     $("#select-msg").text(name)
     
     id = href.replace("#", "")
-    d3.json "/providers/inpatient_charges.json?id=" + id, renderContainer
+    d3.json "/providers/inpatient_charges_new.json?id=" + id, renderContainer
   )
 
 

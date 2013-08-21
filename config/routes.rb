@@ -19,6 +19,7 @@ Healthcare::Application.routes.draw do
       get 'drg_stats'
       get 'bar_chart'
       get 'inpatient_charges'
+      get 'inpatient_charges_new'
       get 'opta'
     end
   end

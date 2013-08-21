@@ -1,5 +1,15 @@
 class InpatientChargeSerializer < ActiveModel::Serializer
-  attributes :id, :avg_covered_charges, :avg_total_payments, :total_discharges
+  attributes :id, :provider_id, :avg_covered_charges, :avg_total_payments, :total_discharges, :provider
+  
+  # def cached_provider
+  #   @provider ||= provider
+  # end
+
+  def provider
+    p = object.provider
+    drg = object.diagnostic_related_group
+    {name: p.name, state_code: p.state_code, longitude: p.longitude, latitude: p.latitude, city: p.city, drg: drg.definition}
+  end
   
   #Average of 
   def national_mean_charges

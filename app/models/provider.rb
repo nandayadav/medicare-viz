@@ -24,9 +24,4 @@ class Provider < ActiveRecord::Base
   # end
   
   
-  
-  def state_code
-    state.abbreviation
-  end
-  
 end

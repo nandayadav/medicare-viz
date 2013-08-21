@@ -33,6 +33,13 @@ class ProvidersController < ApplicationController
     render :json => charges.to_json(:root => false)
   end
   
+  def inpatient_charges_new
+    drg_id = DiagnosticRelatedGroup.find params[:id].to_i
+    charges = InpatientCharge.where(:diagnostic_related_group_id => drg_id, :state_id => nil).includes([:diagnostic_related_group, :provider])
+    #render :json => charges.to_json(:root => false, :include => :provider, :methods => [:state_code])
+    render :json => charges, :root => false
+  end
+  
   def drg_stats
     #{drg: '123', std_deviation: 34.3}
     drg = DiagnosticRelatedGroup.all

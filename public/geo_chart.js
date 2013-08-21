@@ -234,7 +234,7 @@
     };
 
     GeoChart.prototype.mouseOver = function(d) {
-      $(".panel-body p").text(d.provider_name + ", " + d.provider_city + ", " + d.state_code);
+      $(".panel-body p").text(d.provider.name + ", " + d.provider.city + ", " + d.provider.state_code);
       $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges));
       $("#payments-text").val("$ " + Math.floor(d.avg_total_payments));
       return $("#discharges-text").val(d.total_discharges);
@@ -304,7 +304,7 @@
       geoPositions = [];
       providers.forEach(function(o) {
         var location;
-        location = [+o.longitude, +o.latitude];
+        location = [+o.provider.longitude, +o.provider.latitude];
         return geoPositions.push(_this.projection(location));
       });
       this.svg.selectAll("circle").remove();
@@ -344,7 +344,7 @@
       name = $target.text();
       $("#select-msg").text(name);
       id = href.replace("#", "");
-      return d3.json("/providers/inpatient_charges.json?id=" + id, renderContainer);
+      return d3.json("/providers/inpatient_charges_new.json?id=" + id, renderContainer);
     });
   });
 
