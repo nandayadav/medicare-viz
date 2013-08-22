@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
     <link href="css/bootstrap.css" rel="stylesheet" media="screen">
     <style>
 
@@ -125,21 +126,30 @@ body {
       </div>
       
       <div class="row">
-        <div id="map" class="col-md-10"></div>
-        <div class="col-md-2 panel" style="min-height: 210px;padding-top: 5px;">
-          <div class="input-group input-group-sm" style="padding-bottom: 2px;">
-            <span class="input-group-addon">Charges</span>
-            <input type="text" class="form-control" id="charges-text">
-          </div>
-          <div class="input-group input-group-sm" style="padding-bottom: 2px;">
-            <span class="input-group-addon">Payments</span>
-            <input type="text" class="form-control" id="payments-text">
-          </div>
-          <div class="input-group input-group-sm">
-            <span class="input-group-addon">Discharges</span>
-            <input type="text" class="form-control" id="discharges-text">
-          </div>
-          <div class="panel-body"><p></p></div>
+        <div id="map" class="col-md-9"></div>
+        <div class="col-md-3" style="min-height: 210px;padding-top: 5px; color: #fff; padding-left: 45px;">
+          <table class="table table-condensed" id="least-expensive">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Least Expensive Providers</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+        
+        <table class="table table-condensed" id="most-expensive">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Most Expensive Providers</th>
+              </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+            
         </div>
       </div>
     </div>
@@ -163,16 +173,16 @@ body {
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/js/d3.v3.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+    
     <script src="/js/underscore-min.js"></script>
     <script src="/js/colorbrewer.js"></script>
     <script src="/js/coffee-script.js"></script>
     <script src="/js/topojson.v0.min.js"></script>
     <script src="/js/d3.hexbin.v0.min.js"></script>
-    <script src="//code.jquery.com/jquery.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
     <script src="/geo_chart.js"></script>
-    <script src="js/difference.js"></script>
+    
   </body>
 </html>

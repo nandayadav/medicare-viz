@@ -2,12 +2,13 @@
    var width = 900 - margin.left - margin.right,
         height = 640 - margin.top - margin.bottom;
                               
-  var color = d3.scale.linear()
-                      .range(["white", "red"])
-                      .interpolate(d3.interpolateLab);
+  // var color = d3.scale.linear()
+  //                     .range(["blue", "red"])
+  //                     .interpolate(d3.interpolateLab);
+                      
+  var color = d3.scale.quantize()
+                      .range(colorbrewer.Reds[9]);
                               
-  var bubbleColor = d3.scale.quantize()
-                                .range(colorbrewer.Blues[9]);
   
   var radiusScale = d3.scale.linear()
                                 .range([20, 60]);

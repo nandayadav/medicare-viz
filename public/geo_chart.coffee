@@ -71,8 +71,6 @@ class HexChart
               .attr("width", @width)
               .attr("height", @hexHeight)
               
-  updateData: (data) ->
-    @data = data
     
                       
   brushMove: () =>
@@ -80,7 +78,7 @@ class HexChart
     selected = []
     @data.forEach (d) ->
       selected.push(d) if (e[0] <= d.x && d.x <= e[1])
-
+    
     @geo.renderSelected(selected, @indicator, e[0], e[1])
     
   brushEnd: () =>
@@ -90,7 +88,7 @@ class HexChart
     #   selected.push(d) if (e[0] <= d.x && d.x <= e[1])
     
     # @geo.renderSelected selected
-    
+  
 
   xIndicator: (d) =>
    #d.avg_total_payments;
@@ -136,7 +134,8 @@ class HexChart
           .attr("y", 0)
           .attr("height", @hexHeight)
     
-    @geo.renderProviders(@data)
+    #@updateList(@data)
+    #@geo.renderProviders(@data)
       
 class GeoChart
   constructor: (@topology, @div) ->
@@ -217,6 +216,8 @@ class GeoChart
         .attr("d", @path)
         .on("click", @handleStateClick)
     
+    @renderProviders
+    
   #Render chloropeth
   renderChrolopeth: (providers) ->
     statesFrequency = {}
@@ -236,7 +237,7 @@ class GeoChart
     $("circle").tooltip({ position: { my: "left+15 center", at: "top center" }, show: true })
     
   tooltipText: (d) =>
-    d.provider_name + "<br/>" + d.provider_city + ", " + d.state_code + "<br/>Avg payments: " + @precisionFormat(d.avg_total_payments) + "<br/>Charges: " + @precisionFormat(d.avg_covered_charges)
+    d.provider.name + "<br/>" + d.provider.city + ", " + d.provider.state_code + "<br/>Avg payments: $" + @precisionFormat(d.avg_total_payments) + "<br/>Avg Charges: $" + @precisionFormat(d.avg_covered_charges) + "<br/>Total Discharges: " + d.total_discharges;
   
   #Find n similar providers 
   findSimilar: (selected) =>
@@ -302,8 +303,25 @@ class GeoChart
         d3.select(this).attr("r", 4).classed("shown", true)
       else
         d3.select(this).attr("r", 0).classed("shown", false)
+    #@updateList(intersection)  
+  
+  #Update top 5 and bottom 5 table    
+  updateList: (providers) ->
+    sorted = _.sortBy(providers, (provider) -> provider.avg_covered_charges)
+    size = providers.length
+    cheapest = sorted.slice(0,5)
+    expensive = sorted.slice(size - 5, size)
+    s = "<tr>
+              <td>index</td>
+              <td>name</td>
+            </tr>"
+    cheapest.forEach (p, i) ->
+      tr = s.replace("name", p.provider.name).replace("index", i + 1)
+      $("#least-expensive tbody").append(tr)
       
-      
+    expensive.forEach (p, i) ->
+      tr = s.replace("name", p.provider.name).replace("index", i + 1)
+      $("#most-expensive tbody").append(tr)
     
   #Initial Render of all providers
   renderProviders: (providers) ->
@@ -323,17 +341,19 @@ class GeoChart
       .attr("title", @tooltipText)
       .on("mouseover", (d) -> 
         d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0)
-        that.mouseOver(d)
+        #that.mouseOver(d)
       )
       .on("mouseout", (d) -> 
         d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2)
-        that.mouseOut(d)
+        #that.mouseOut(d)
       )
       .attr("r", 4)
       .attr("cx", (d, i) -> geoPositions[i][0])
       .attr("cy", (d, i) -> geoPositions[i][1])
-      
+    
+    @updateList(providers)  
     @attachTooltips()
+    
 
 #Some globals
 geoChart = null
@@ -378,6 +398,7 @@ renderContainer = (error, data) ->
     second.data = cloned
     
   first.render()
+  first.geo.renderProviders(data)
   second.render()
   
 # $ ->

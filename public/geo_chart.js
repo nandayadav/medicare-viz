@@ -52,10 +52,6 @@
       this.svg.append("clipPath").attr("id", "clip").append("rect").attr("class", "mesh").attr("width", this.width).attr("height", this.hexHeight);
     }
 
-    HexChart.prototype.updateData = function(data) {
-      return this.data = data;
-    };
-
     HexChart.prototype.brushMove = function() {
       var e, selected;
       e = d3.event.target.extent();
@@ -106,8 +102,7 @@
       }).style("fill", function(d) {
         return _this.color(d.length);
       });
-      this.svg.append("g").attr("class", "brush").call(this.brush).selectAll("rect").attr("y", 0).attr("height", this.hexHeight);
-      return this.geo.renderProviders(this.data);
+      return this.svg.append("g").attr("class", "brush").call(this.brush).selectAll("rect").attr("y", 0).attr("height", this.hexHeight);
     };
 
     return HexChart;
@@ -185,7 +180,8 @@
       geometries = topojson.object(this.topology, this.topology.objects.states).geometries.filter(function(d) {
         return d.properties.code !== 'VI' && d.properties.code !== 'PR';
       });
-      return this.states = this.svg.selectAll("path").data(geometries).enter().append("path").attr("d", this.path).on("click", this.handleStateClick);
+      this.states = this.svg.selectAll("path").data(geometries).enter().append("path").attr("d", this.path).on("click", this.handleStateClick);
+      return this.renderProviders;
     };
 
     GeoChart.prototype.renderChrolopeth = function(providers) {
@@ -216,7 +212,7 @@
     };
 
     GeoChart.prototype.tooltipText = function(d) {
-      return d.provider_name + "<br/>" + d.provider_city + ", " + d.state_code + "<br/>Avg payments: " + this.precisionFormat(d.avg_total_payments) + "<br/>Charges: " + this.precisionFormat(d.avg_covered_charges);
+      return d.provider.name + "<br/>" + d.provider.city + ", " + d.provider.state_code + "<br/>Avg payments: $" + this.precisionFormat(d.avg_total_payments) + "<br/>Avg Charges: $" + this.precisionFormat(d.avg_covered_charges) + "<br/>Total Discharges: " + d.total_discharges;
     };
 
     GeoChart.prototype.findSimilar = function(selected) {
@@ -296,6 +292,27 @@
       });
     };
 
+    GeoChart.prototype.updateList = function(providers) {
+      var cheapest, expensive, s, size, sorted;
+      sorted = _.sortBy(providers, function(provider) {
+        return provider.avg_covered_charges;
+      });
+      size = providers.length;
+      cheapest = sorted.slice(0, 5);
+      expensive = sorted.slice(size - 5, size);
+      s = "<tr>              <td>index</td>              <td>name</td>            </tr>";
+      cheapest.forEach(function(p, i) {
+        var tr;
+        tr = s.replace("name", p.provider.name).replace("index", i + 1);
+        return $("#least-expensive tbody").append(tr);
+      });
+      return expensive.forEach(function(p, i) {
+        var tr;
+        tr = s.replace("name", p.provider.name).replace("index", i + 1);
+        return $("#most-expensive tbody").append(tr);
+      });
+    };
+
     GeoChart.prototype.renderProviders = function(providers) {
       var geoPositions, that,
         _this = this;
@@ -309,16 +326,15 @@
       });
       this.svg.selectAll("circle").remove();
       this.svg.selectAll("circle").data(providers).enter().append("circle").attr("class", "shown").attr("title", this.tooltipText).on("mouseover", function(d) {
-        d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0);
-        return that.mouseOver(d);
+        return d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0);
       }).on("mouseout", function(d) {
-        d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2);
-        return that.mouseOut(d);
+        return d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2);
       }).attr("r", 4).attr("cx", function(d, i) {
         return geoPositions[i][0];
       }).attr("cy", function(d, i) {
         return geoPositions[i][1];
       });
+      this.updateList(providers);
       return this.attachTooltips();
     };
 
@@ -376,6 +392,7 @@
       second.data = cloned;
     }
     first.render();
+    first.geo.renderProviders(data);
     return second.render();
   };
 
