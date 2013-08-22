@@ -25,8 +25,8 @@ var svg = d3.select("#difference").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 d3.json("/providers/2729", function(error, data) {
-  x.domain(data.provider.inpatient_charges.map(function(d) { return d.id; }));
-  y.domain([0, d3.max(data.provider.inpatient_charges, function(d) { return d.avg_covered_charges; })]);
+  x.domain(data.inpatient_charges.map(function(d) { return d.id; }));
+  y.domain([0, d3.max(data.inpatient_charges, function(d) { return d.avg_covered_charges; })]);
 
   svg.append("g")
       .attr("class", "x axis")
@@ -44,7 +44,7 @@ d3.json("/providers/2729", function(error, data) {
       .text("Frequency");
 
   svg.selectAll(".bar")
-      .data(data.provider.inpatient_charges)
+      .data(data.inpatient_charges)
     .enter().append("rect")
       .attr("class", "bar")
       .attr("x", function(d) { return x(d.id); })

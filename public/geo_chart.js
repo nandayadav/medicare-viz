@@ -11,10 +11,9 @@
         top: 5,
         bottom: 0,
         left: 0,
-        right: 10
+        right: 20
       };
-      this.selected = [];
-      this.width = 800 - this.margin.left - this.margin.right;
+      this.width = 940 - this.margin.left - this.margin.right;
       this.height = 140 - this.margin.top - this.margin.bottom;
       this.svg = d3.select(this.div).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     }
@@ -33,38 +32,42 @@
       this.yPosition = yPosition;
       this.xIndicator = __bind(this.xIndicator, this);
 
-      this.brushEnd = __bind(this.brushEnd, this);
-
       this.brushMove = __bind(this.brushMove, this);
 
+      this.width = this.container.width - 130;
+      this.height = this.container.height;
       this.color = d3.scale.linear().range(["white", "red"]).interpolate(d3.interpolateLab);
-      this.xScale = d3.scale.linear().range([0, this.container.width]);
+      this.xScale = d3.scale.linear().range([0, this.width]);
       this.hexHeight = 25;
       this.hexRadius = 2;
-      this.height = this.container.height;
-      this.width = this.container.width;
       this.yScale = d3.scale.linear().range([this.hexHeight, 1]).domain([this.hexHeight, 1]);
       this.xAxis = d3.svg.axis().scale(this.xScale).ticks(7).tickSize(10).tickPadding("4").orient("bottom");
       this.hexbin = d3.hexbin().size([this.container.width, this.hexHeight]).radius(this.hexRadius);
-      this.brush = d3.svg.brush().x(this.xScale).on("brush", this.brushMove).on("brushend", this.brushEnd);
+      this.brush = d3.svg.brush().x(this.xScale).on("brush", this.brushMove);
       this.svg = this.container.svg.append("g").attr("transform", "translate(" + 0 + "," + this.yPosition + ")");
-      this.text = this.svg.append("text").attr("x", this.width / 4).attr("y", -4).text("");
       this.svg.append("clipPath").attr("id", "clip").append("rect").attr("class", "mesh").attr("width", this.width).attr("height", this.hexHeight);
+      this.svg.append("text").attr('x', this.width + 10).attr('y', 25).text(this.capitalize(this.indicator));
     }
 
     HexChart.prototype.brushMove = function() {
       var e, selected;
       e = d3.event.target.extent();
       selected = [];
-      this.data.forEach(function(d) {
-        if (e[0] <= d.x && d.x <= e[1]) {
-          return selected.push(d);
-        }
-      });
-      return this.geo.renderSelected(selected, this.indicator, e[0], e[1]);
+      if (e[0] === e[1]) {
+        return this.geo.renderSelected(this.data, this.indicator, 11, 22);
+      } else {
+        this.data.forEach(function(d) {
+          if (e[0] <= d.x && d.x <= e[1]) {
+            return selected.push(d);
+          }
+        });
+        return this.geo.renderSelected(selected, this.indicator, e[0], e[1]);
+      }
     };
 
-    HexChart.prototype.brushEnd = function() {};
+    HexChart.prototype.capitalize = function(str) {
+      return str.charAt(0).toUpperCase() + str.substring(1).toLowerCase();
+    };
 
     HexChart.prototype.xIndicator = function(d) {
       if (this.indicator === 'payments') {
@@ -120,15 +123,9 @@
 
       this.mouseDown = __bind(this.mouseDown, this);
 
-      this.mouseOut = __bind(this.mouseOut, this);
-
-      this.mouseOver = __bind(this.mouseOver, this);
-
       this.findSimilar = __bind(this.findSimilar, this);
 
       this.tooltipText = __bind(this.tooltipText, this);
-
-      this.handleStateClick = __bind(this.handleStateClick, this);
 
       this.margin = {
         top: 0,
@@ -136,12 +133,12 @@
         left: 0,
         right: 0
       };
+      this.providers = [];
       this.width = 900 - this.margin.left - this.margin.right;
       this.height = 640 - this.margin.top - this.margin.bottom;
       this.projection = d3.geo.albersUsa().scale(1100).translate([480, 270]);
       this.path = d3.geo.path().projection(this.projection);
       this.precisionFormat = d3.format(".2f");
-      this.centered;
       this.states = [];
       this.circles = [];
       this.selected = {
@@ -152,53 +149,13 @@
       this.svg = d3.select(this.div).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     }
 
-    GeoChart.prototype.handleStateClick = function(d) {
-      var centroid, k, x, y, z;
-      x = null;
-      y = null;
-      z = null;
-      if (d && this.centered !== d) {
-        centroid = this.path.centroid(d);
-        x = centroid[0];
-        y = centroid[1];
-        k = 4;
-        this.centered = d;
-      } else {
-        x = this.width / 2;
-        y = this.height / 2;
-        k = 1;
-        this.centered = null;
-      }
-      this.states.classed("inactive", this.centered && function(d) {
-        return d !== this.centered;
-      });
-      return this.states.transition().duration(750).attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")").style("stroke-width", 1.5 / k + "px");
-    };
-
     GeoChart.prototype.render = function() {
       var geometries;
       geometries = topojson.object(this.topology, this.topology.objects.states).geometries.filter(function(d) {
         return d.properties.code !== 'VI' && d.properties.code !== 'PR';
       });
-      this.states = this.svg.selectAll("path").data(geometries).enter().append("path").attr("d", this.path).on("click", this.handleStateClick);
+      this.states = this.svg.selectAll("path").data(geometries).enter().append("path").attr("d", this.path);
       return this.renderProviders;
-    };
-
-    GeoChart.prototype.renderChrolopeth = function(providers) {
-      var statesFrequency,
-        _this = this;
-      statesFrequency = {};
-      providers.forEach(function(p) {
-        if (statesFrequency[p]) {
-          return statesFrequency[p] += 1;
-        } else {
-          return statesFrequency[p] = 1;
-        }
-      });
-      this.color.domain([0, d3.max(_.values(statesFrequency))]);
-      return this.states.style("fill", function(d) {
-        return _this.color(statesFrequency[d.properties.code] || 0);
-      });
     };
 
     GeoChart.prototype.attachTooltips = function() {
@@ -229,20 +186,6 @@
       });
     };
 
-    GeoChart.prototype.mouseOver = function(d) {
-      $(".panel-body p").text(d.provider.name + ", " + d.provider.city + ", " + d.provider.state_code);
-      $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges));
-      $("#payments-text").val("$ " + Math.floor(d.avg_total_payments));
-      return $("#discharges-text").val(d.total_discharges);
-    };
-
-    GeoChart.prototype.mouseOut = function(d) {
-      $(".panel-body p").text("");
-      $("#charges-text").val("");
-      $("#payments-text").val("");
-      return $("#discharges-text").val("");
-    };
-
     GeoChart.prototype.mouseDown = function(d) {
       var selected;
       selected = d3.select(d3.event.target);
@@ -259,63 +202,69 @@
       });
     };
 
-    GeoChart.prototype.renderSelected = function(providers, bucket, left, right) {
-      var ids, intersection, leftText, other, otherAttr, rightText;
-      ids = _.pluck(providers, 'provider_id');
-      this.selected[bucket] = ids;
-      otherAttr = bucket === 'charges' ? 'payments' : 'charges';
-      other = this.selected[otherAttr];
-      intersection = [];
-      if (_.isEmpty(other) && !_.isEmpty(ids)) {
-        intersection = ids;
-      } else if (_.isEmpty(ids) && !_.isEmpty(other)) {
-        intersection = other;
-      } else {
-        intersection = _.intersection(ids, other);
-      }
-      d3.select("#provider-count").text(intersection.length);
-      leftText = "$ " + Math.floor(left);
-      rightText = "$ " + Math.floor(right);
-      if (bucket === 'charges') {
-        d3.select("#charges-left").text(leftText);
-        d3.select("#charges-right").text(rightText);
-      } else {
-        d3.select("#payments-left").text(leftText);
-        d3.select("#payments-right").text(rightText);
-      }
-      return this.svg.selectAll("circle").each(function(d) {
-        if (_.contains(intersection, d.provider_id)) {
-          return d3.select(this).attr("r", 4).classed("shown", true);
-        } else {
-          return d3.select(this).attr("r", 0).classed("shown", false);
-        }
-      });
+    GeoChart.prototype.updateLabels = function(indicator, left, right) {
+      var selector;
+      selector = "#" + indicator;
+      d3.select(selector + "-left").text(left);
+      return d3.select(selector + "-right").text(right);
     };
 
-    GeoChart.prototype.updateList = function(providers) {
-      var cheapest, expensive, s, size, sorted;
-      sorted = _.sortBy(providers, function(provider) {
-        return provider.avg_covered_charges;
-      });
-      size = providers.length;
+    GeoChart.prototype.renderSelected = function(providers, bucket, left, right) {
+      var ids, intersection, leftText, other, otherAttr, rightText, sorted;
+      ids = _.pluck(providers, 'provider_id');
+      otherAttr = bucket === 'charges' ? 'payments' : 'charges';
+      other = this.selected[otherAttr];
+      if (ids.length !== this.selected[bucket].length) {
+        this.selected[bucket] = ids;
+        intersection = _.intersection(ids, other);
+        d3.select("#provider-count").text(intersection.length);
+        leftText = "$ " + Math.floor(left);
+        rightText = "$ " + Math.floor(right);
+        this.updateLabels(bucket, leftText, rightText);
+        this.svg.selectAll("circle").each(function(d) {
+          if (_.contains(intersection, d.provider_id)) {
+            return d3.select(this).attr("r", 4).classed("shown", true);
+          } else {
+            return d3.select(this).attr("r", 0).classed("shown", false);
+          }
+        });
+        sorted = _.filter(this.providers, function(p) {
+          return _.contains(intersection, p.provider_id);
+        });
+        sorted = _.sortBy(sorted, function(provider) {
+          return provider.avg_covered_charges;
+        });
+        return this.updateList(sorted);
+      }
+    };
+
+    GeoChart.prototype.updateList = function(sorted) {
+      var cheapest, expensive, s, size;
+      size = sorted.length;
       cheapest = sorted.slice(0, 5);
       expensive = sorted.slice(size - 5, size);
       s = "<tr>              <td>index</td>              <td>name</td>            </tr>";
+      $("#least-expensive tbody").html('');
       cheapest.forEach(function(p, i) {
         var tr;
-        tr = s.replace("name", p.provider.name).replace("index", i + 1);
+        tr = s.replace("name", p.provider.name + " (" + p.provider.city + ", " + p.provider.state_code + ")").replace("index", i + 1);
         return $("#least-expensive tbody").append(tr);
       });
+      $("#most-expensive tbody").html('');
       return expensive.forEach(function(p, i) {
         var tr;
-        tr = s.replace("name", p.provider.name).replace("index", i + 1);
+        tr = s.replace("name", p.provider.name + " (" + p.provider.city + ", " + p.provider.state_code + ")").replace("index", i + 1);
         return $("#most-expensive tbody").append(tr);
       });
     };
 
     GeoChart.prototype.renderProviders = function(providers) {
-      var geoPositions, that,
+      var geoPositions, ids, paymentsSorted, size, sorted, that,
         _this = this;
+      this.providers = providers;
+      ids = _.pluck(providers, 'provider_id');
+      this.selected['charges'] = ids;
+      this.selected['payments'] = ids;
       that = this;
       d3.select("#provider-count").text(providers.length);
       geoPositions = [];
@@ -334,7 +283,16 @@
       }).attr("cy", function(d, i) {
         return geoPositions[i][1];
       });
-      this.updateList(providers);
+      sorted = _.sortBy(providers, function(provider) {
+        return provider.avg_covered_charges;
+      });
+      paymentsSorted = _.sortBy(providers, function(provider) {
+        return provider.avg_covered_charges;
+      });
+      size = providers.length;
+      this.updateLabels('charges', "$" + Math.floor(sorted[0].avg_covered_charges), "$" + Math.floor(sorted[size - 1].avg_covered_charges));
+      this.updateLabels('payments', "$" + Math.floor(sorted[0].avg_total_payments), "$" + Math.floor(sorted[size - 1].avg_total_payments));
+      this.updateList(sorted);
       return this.attachTooltips();
     };
 

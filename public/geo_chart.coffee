@@ -5,11 +5,10 @@ class HexContainer
       top: 5
       bottom: 0
       left: 0
-      right: 10
-      
-    @selected = []
+      right: 20
+  
     
-    @width = 800 - @margin.left - @margin.right
+    @width = 940 - @margin.left - @margin.right
     @height = 140 - @margin.top - @margin.bottom
     
     @svg = d3.select(@div).append("svg")
@@ -20,17 +19,20 @@ class HexContainer
     
 class HexChart
   constructor: (@data, @geo, @container, @indicator, @yPosition) ->
+    
+    @width = @container.width - 130
+    @height = @container.height
     @color = d3.scale.linear()
                       .range(["white", "red"])
                       .interpolate(d3.interpolateLab)
       
     @xScale = d3.scale.linear()
-                               .range([0, @container.width])
+                               .range([0, @width])
                                
     @hexHeight = 25
     @hexRadius = 2
-    @height = @container.height
-    @width = @container.width
+    
+    
 
     @yScale = d3.scale.linear()
                                .range([@hexHeight, 1])
@@ -51,7 +53,6 @@ class HexChart
     @brush = d3.svg.brush()
                       .x(@xScale)
                       .on("brush", @brushMove)
-                      .on("brushend", @brushEnd)
                   
     
     #accessors from container                  
@@ -59,10 +60,6 @@ class HexChart
                       .append("g")
                         .attr("transform", "translate(" + 0 + "," + @yPosition + ")")
                       
-    @text = @svg.append("text")
-            .attr("x", @width/4)
-            .attr("y", -4)
-            .text("")
                       
     @svg.append("clipPath")
               .attr("id", "clip")
@@ -71,25 +68,28 @@ class HexChart
               .attr("width", @width)
               .attr("height", @hexHeight)
               
+    @svg.append("text")
+              .attr('x', @width + 10)
+              .attr('y', 25)
+              .text(@capitalize(@indicator))
+              
     
                       
   brushMove: () =>
     e = d3.event.target.extent()
     selected = []
-    @data.forEach (d) ->
-      selected.push(d) if (e[0] <= d.x && d.x <= e[1])
-    
-    @geo.renderSelected(selected, @indicator, e[0], e[1])
-    
-  brushEnd: () =>
-    # e = d3.event.target.extent()
-    # selected = []
-    # @data.forEach (d) =>
-    #   selected.push(d) if (e[0] <= d.x && d.x <= e[1])
-    
-    # @geo.renderSelected selected
-  
+    #Click on the background
+    if (e[0] == e[1]) 
+      @geo.renderSelected(@data, @indicator, 11, 22)
+    else
+      @data.forEach (d) ->
+        selected.push(d) if (e[0] <= d.x && d.x <= e[1])
+      @geo.renderSelected(selected, @indicator, e[0], e[1])
 
+  
+  capitalize: (str) ->
+    str.charAt(0).toUpperCase() + str.substring(1).toLowerCase()
+  
   xIndicator: (d) =>
    #d.avg_total_payments;
     if @indicator == 'payments' then d.avg_total_payments else d.avg_covered_charges
@@ -144,6 +144,9 @@ class GeoChart
       bottom: 0
       left: 0
       right: 0
+    
+    #Store all providers
+    @providers = [] 
       
     @width = 900 - @margin.left - @margin.right
     @height = 640 - @margin.top - @margin.bottom
@@ -157,10 +160,11 @@ class GeoChart
                              
     @precisionFormat = d3.format(".2f")
 
-    @centered
                              
     @states = []
     @circles = []
+    
+    #Store currently selected provider_ids for both sets of indicator
     @selected = {charges: [], payments: []}
     
     @color = d3.scale.quantize()
@@ -174,36 +178,6 @@ class GeoChart
                       .attr("transform", "translate(" + @margin.left + "," + @margin.top + ")")
   
   
-  handleStateClick: (d) =>
-    x = null
-    y = null
-    z = null
-
-    if (d && @centered != d)
-      centroid = @path.centroid(d)
-      x = centroid[0]
-      y = centroid[1]
-      k = 4
-      @centered = d
-    else
-      x = @width / 2
-      y = @height / 2
-      k = 1;
-      @centered = null
-    
-    # @states.classed("active", @centered && (d) ->  d == @centered)
-    # @states.forEach (d) =>
-    #   if (@centered && (d) -> d == @centered)
-    #     d3.select(this).style("display: block;")
-    #   else
-    #     d3.select(this).style("display: none;")
-    @states.classed("inactive", @centered && (d) -> d != @centered )
-        
-
-    @states.transition()
-        .duration(750)
-        .attr("transform", "translate(" + @width / 2 + "," + @height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
-        .style("stroke-width", 1.5 / k + "px")
     
   #Render the map, excluding PR and virgin islands
   render: () ->
@@ -214,23 +188,8 @@ class GeoChart
         .data(geometries)
       .enter().append("path")
         .attr("d", @path)
-        .on("click", @handleStateClick)
     
     @renderProviders
-    
-  #Render chloropeth
-  renderChrolopeth: (providers) ->
-    statesFrequency = {}
-    providers.forEach (p) =>
-      if (statesFrequency[p])
-        statesFrequency[p] += 1
-      else
-        statesFrequency[p] = 1
-    #recompute the color domain
-    @color.domain([0, d3.max(_.values(statesFrequency))])
-    #bubbleColor.domain(d3.extent(data, function(d) { return d.provider.total_payments; })); 
-      
-    @states.style("fill", (d) => @color(statesFrequency[d.properties.code] || 0))
     
   
   attachTooltips: () ->
@@ -248,21 +207,7 @@ class GeoChart
         circle.attr("r", 10)
       else
         circle.attr("r", 0)
-      
-      
-  mouseOver: (d) =>
-    $(".panel-body p").text(d.provider.name + ", " + d.provider.city + ", " + d.provider.state_code)
-    $("#charges-text").val("$ " + Math.floor(d.avg_covered_charges))
-    $("#payments-text").val("$ " + Math.floor(d.avg_total_payments))
-    $("#discharges-text").val(d.total_discharges)
     
-    
-    
-  mouseOut: (d) =>
-    $(".panel-body p").text("")
-    $("#charges-text").val("")
-    $("#payments-text").val("")
-    $("#discharges-text").val("")
     
   mouseDown: (d) =>
     selected = d3.select(d3.event.target)
@@ -274,57 +219,68 @@ class GeoChart
     selected.attr("r", 4)
     @svg.selectAll("circle.shown").each (d) ->
       d3.select(this).attr("r", 4)
+      
+  updateLabels: (indicator, left, right) ->
+    selector = "#" + indicator
+    d3.select(selector + "-left").text(left)
+    d3.select(selector + "-right").text(right)
     
-  #Render selected providers, (show/hide already rendered circles) 
+    
+  #Applies intersection to selected provider_ids of both indicators and renders that only, while hiding the rest
   renderSelected: (providers, bucket, left, right) =>
     ids = _.pluck(providers, 'provider_id')
-    @selected[bucket] = ids
     otherAttr = if bucket == 'charges' then 'payments' else 'charges'
     other = @selected[otherAttr]
-    intersection = []
-    if (_.isEmpty(other) && !_.isEmpty(ids))
-      intersection = ids
-    else if (_.isEmpty(ids) && !_.isEmpty(other))
-      intersection = other
-    else
+    
+    #Only update & render if selection has actually changed
+    #TODO: fix this logic, its buggy
+    if (ids.length != @selected[bucket].length)
+      @selected[bucket] = ids
       intersection = _.intersection(ids, other)
-    d3.select("#provider-count").text(intersection.length)
-    leftText = "$ " + Math.floor(left)
-    rightText = "$ " + Math.floor(right)
-    if bucket == 'charges'
-      d3.select("#charges-left").text(leftText)
-      d3.select("#charges-right").text(rightText)
-    else
-      d3.select("#payments-left").text(leftText)
-      d3.select("#payments-right").text(rightText)
+      d3.select("#provider-count").text(intersection.length)
+      leftText = "$ " + Math.floor(left)
+      rightText = "$ " + Math.floor(right)
+      @updateLabels(bucket, leftText, rightText)
+        
+      @svg.selectAll("circle").each (d) ->
+        if _.contains(intersection, d.provider_id)
+          d3.select(this).attr("r", 4).classed("shown", true)
+        else
+          d3.select(this).attr("r", 0).classed("shown", false)
+            
+      #Filter & Sort the selection
+      sorted = _.filter(@providers, (p) -> _.contains(intersection, p.provider_id))
+      sorted = _.sortBy(sorted, (provider) -> provider.avg_covered_charges)
       
-    @svg.selectAll("circle").each (d) ->
-      if _.contains(intersection, d.provider_id)
-        d3.select(this).attr("r", 4).classed("shown", true)
-      else
-        d3.select(this).attr("r", 0).classed("shown", false)
-    #@updateList(intersection)  
+      @updateList(sorted)  
   
-  #Update top 5 and bottom 5 table    
-  updateList: (providers) ->
-    sorted = _.sortBy(providers, (provider) -> provider.avg_covered_charges)
-    size = providers.length
+  #Update top 5 and bottom 5 table  
+  #Feed in sorted providers by avg_covered_charges  
+  updateList: (sorted) ->
+    size = sorted.length
     cheapest = sorted.slice(0,5)
     expensive = sorted.slice(size - 5, size)
     s = "<tr>
               <td>index</td>
               <td>name</td>
             </tr>"
+    $("#least-expensive tbody").html('')
+    
     cheapest.forEach (p, i) ->
-      tr = s.replace("name", p.provider.name).replace("index", i + 1)
+      tr = s.replace("name", p.provider.name + " (" + p.provider.city + ", " + p.provider.state_code + ")").replace("index", i + 1)
       $("#least-expensive tbody").append(tr)
       
+    $("#most-expensive tbody").html('')
     expensive.forEach (p, i) ->
-      tr = s.replace("name", p.provider.name).replace("index", i + 1)
+      tr = s.replace("name", p.provider.name + " (" + p.provider.city + ", " + p.provider.state_code + ")").replace("index", i + 1)
       $("#most-expensive tbody").append(tr)
     
   #Initial Render of all providers
   renderProviders: (providers) ->
+    @providers = providers
+    ids = _.pluck(providers, 'provider_id')
+    @selected['charges'] = ids
+    @selected['payments'] = ids
     that = @
     d3.select("#provider-count").text(providers.length)
     geoPositions = []
@@ -341,17 +297,19 @@ class GeoChart
       .attr("title", @tooltipText)
       .on("mouseover", (d) -> 
         d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0)
-        #that.mouseOver(d)
       )
       .on("mouseout", (d) -> 
         d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2)
-        #that.mouseOut(d)
       )
       .attr("r", 4)
       .attr("cx", (d, i) -> geoPositions[i][0])
       .attr("cy", (d, i) -> geoPositions[i][1])
-    
-    @updateList(providers)  
+    sorted = _.sortBy(providers, (provider) -> provider.avg_covered_charges)
+    paymentsSorted = _.sortBy(providers, (provider) -> provider.avg_covered_charges)
+    size = providers.length
+    @updateLabels('charges', "$" + Math.floor(sorted[0].avg_covered_charges), "$" + Math.floor(sorted[size-1].avg_covered_charges))
+    @updateLabels('payments', "$" + Math.floor(sorted[0].avg_total_payments), "$" + Math.floor(sorted[size-1].avg_total_payments))
+    @updateList(sorted)  
     @attachTooltips()
     
 
