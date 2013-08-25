@@ -13,8 +13,10 @@
         left: 0,
         right: 20
       };
-      this.width = 940 - this.margin.left - this.margin.right;
+      this.width = 990 - this.margin.left - this.margin.right;
       this.height = 140 - this.margin.top - this.margin.bottom;
+      this.meanPayments = null;
+      this.meanCharges = null;
       this.svg = d3.select(this.div).append("svg").attr("width", this.width + this.margin.left + this.margin.right).attr("height", this.height + this.margin.top + this.margin.bottom).append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     }
 
@@ -34,7 +36,7 @@
 
       this.brushMove = __bind(this.brushMove, this);
 
-      this.width = this.container.width - 130;
+      this.width = this.container.width - 300;
       this.height = this.container.height;
       this.color = d3.scale.linear().range(["white", "red"]).interpolate(d3.interpolateLab);
       this.xScale = d3.scale.linear().range([0, this.width]);
@@ -42,12 +44,20 @@
       this.hexRadius = 2;
       this.yScale = d3.scale.linear().range([this.hexHeight, 1]).domain([this.hexHeight, 1]);
       this.xAxis = d3.svg.axis().scale(this.xScale).ticks(7).tickSize(10).tickPadding("4").orient("bottom");
-      this.hexbin = d3.hexbin().size([this.container.width, this.hexHeight]).radius(this.hexRadius);
+      this.hexbin = d3.hexbin().size([this.width, this.hexHeight]).radius(this.hexRadius);
       this.brush = d3.svg.brush().x(this.xScale).on("brush", this.brushMove);
+      this.precisionFormat = d3.format(".2f");
       this.svg = this.container.svg.append("g").attr("transform", "translate(" + 0 + "," + this.yPosition + ")");
       this.svg.append("clipPath").attr("id", "clip").append("rect").attr("class", "mesh").attr("width", this.width).attr("height", this.hexHeight);
       this.svg.append("text").attr('x', this.width + 10).attr('y', 25).text(this.capitalize(this.indicator));
     }
+
+    HexChart.prototype.renderComparison = function() {
+      var percentage;
+      percentage = this.precisionFormat((this.container.meanPayments / this.container.meanCharges) * 100) + "%";
+      d3.select(".progress-bar").style("width", percentage);
+      return d3.select("#difference-ratio").text(percentage);
+    };
 
     HexChart.prototype.brushMove = function() {
       var e, selected;
@@ -77,24 +87,12 @@
       }
     };
 
-    HexChart.prototype.computeWeightedMeans = function() {
-      var mean, weightDivider, weightedTotals, weights;
-      weights = _.pluck(this.data, 'total_discharges');
-      weightDivider = _.reduce(weights, function(sum, num) {
-        return sum + num;
-      });
-      weightedTotals = 0.0;
-      this.data.forEach(function(d) {
-        return weightedTotals += d.total_discharges * d.avg_covered_charges;
-      });
-      mean = weightedTotals / weightDivider;
-      return console.log("Mean: " + mean);
-    };
-
     HexChart.prototype.render = function() {
       var points,
         _this = this;
-      this.computeWeightedMeans();
+      if (this.indicator === 'charges') {
+        this.renderComparison();
+      }
       points = [];
       this.xScale.domain(d3.extent(this.data, this.xIndicator));
       this.xAxis.scale(this.xScale);
@@ -327,13 +325,16 @@
 
   $(function() {
     return $(".dropdown-menu").on("click", "li a", function(e) {
-      var $target, href, id, name;
+      var $target, id, meanCharges, meanPayments, name;
       $target = $(e.currentTarget);
-      href = $target.data('id');
+      id = $target.data('id');
+      meanPayments = $target.data('payments');
+      meanCharges = $target.data('charges');
       name = $target.text();
       $("#select-msg").text(name);
-      id = href.replace("#", "");
-      return d3.json("/providers/inpatient_charges_new.json?id=" + id, renderContainer);
+      container.meanPayments = meanPayments;
+      container.meanCharges = meanCharges;
+      return d3.json("/providers/inpatient_charges.json?id=" + id, renderContainer);
     });
   });
 
@@ -341,7 +342,7 @@
     drgs = data;
     return data.forEach(function(d) {
       var elem;
-      elem = "<li><a data-id=" + d.id + "data-payments=" + d.weighted_mean_payments + "data-charges=" + d.weighted_charge_payments + "href=#>" + d.definition + "</a></li>";
+      elem = "<li><a data-id=" + d.id + " data-payments=" + d.weighted_mean_payments + " data-charges=" + d.weighted_mean_charges + " href=#>" + d.definition + "</a></li>";
       return $(".dropdown-menu").append(elem);
     });
   };

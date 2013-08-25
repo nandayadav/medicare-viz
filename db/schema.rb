@@ -11,12 +11,14 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130821192800) do
+ActiveRecord::Schema.define(:version => 20130823051752) do
 
   create_table "diagnostic_related_groups", :force => true do |t|
     t.string   "definition"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at",             :null => false
+    t.datetime "updated_at",             :null => false
+    t.float    "weighted_mean_charges"
+    t.float    "weighted_mean_payments"
   end
 
   add_index "diagnostic_related_groups", ["definition"], :name => "index_diagnostic_related_groups_on_definition"

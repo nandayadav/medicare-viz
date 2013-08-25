@@ -103,7 +103,7 @@ body {
       <div class="row" style="color: white;">
         <!-- Split button -->
         <div class="btn-group btn-group-sm">
-          <button type="button" class="btn btn-default" id="select-msg">Select a DRG(Diagnostic Related Group)</button>
+          <button type="button" class="btn btn-default" id="select-msg">Select a DRG(Diagnostic Related Group) to get started</button>
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>
           </button>
@@ -112,13 +112,19 @@ body {
         </div>
         <hr/>
       </div>
-
-<!--       <div class="row" style="color: #fff;">
-        <div id="chart" class="col-md-9"></div>
-        <div id="label" class="col-md-3"><span>Average Covered Charges</span><br/><span>Average Covered Charges</span></div>
-      </div> -->
       <div class="row">
-        <div id="chart"></div>
+        <div id="chart" class="col-md-8"></div>
+        <div class="col-md-4 pull-right" style="color: #fff;">
+          <br/>
+          <p>Medicare on average paid <span class="label label-danger" id="difference-ratio"></span> of total charges<br/>
+          *(Based on weighted means)</p>
+          <div class="progress">
+            <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
         <div id="provider-info" style="color: white;">
           <p>
             Displaying <span class="label label-danger" id="provider-count"></span> providers with Total charges between 

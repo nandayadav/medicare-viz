@@ -8,8 +8,12 @@ class HexContainer
       right: 20
   
     
-    @width = 940 - @margin.left - @margin.right
+    @width = 990 - @margin.left - @margin.right
     @height = 140 - @margin.top - @margin.bottom
+    
+    @meanPayments = null
+    @meanCharges = null
+
     
     @svg = d3.select(@div).append("svg")
                       .attr("width", @width + @margin.left + @margin.right)
@@ -20,7 +24,7 @@ class HexContainer
 class HexChart
   constructor: (@data, @geo, @container, @indicator, @yPosition) ->
     
-    @width = @container.width - 130
+    @width = @container.width - 300
     @height = @container.height
     @color = d3.scale.linear()
                       .range(["white", "red"])
@@ -31,7 +35,6 @@ class HexChart
                                
     @hexHeight = 25
     @hexRadius = 2
-    
     
 
     @yScale = d3.scale.linear()
@@ -47,12 +50,14 @@ class HexChart
                         .orient("bottom")
                         
     @hexbin = d3.hexbin()
-                        .size([@container.width, @hexHeight])
+                        .size([@width, @hexHeight])
                         .radius(@hexRadius)
                         
     @brush = d3.svg.brush()
                       .x(@xScale)
                       .on("brush", @brushMove)
+                      
+    @precisionFormat = d3.format(".2f")
                   
     
     #accessors from container                  
@@ -72,8 +77,12 @@ class HexChart
               .attr('x', @width + 10)
               .attr('y', 25)
               .text(@capitalize(@indicator))
+            
               
-    
+  renderComparison: () ->   
+    percentage = @precisionFormat((@container.meanPayments / @container.meanCharges) * 100) + "%"
+    d3.select(".progress-bar").style("width", percentage)
+    d3.select("#difference-ratio").text(percentage)
                       
   brushMove: () =>
     e = d3.event.target.extent()
@@ -93,20 +102,11 @@ class HexChart
   xIndicator: (d) =>
    #d.avg_total_payments;
     if @indicator == 'payments' then d.avg_total_payments else d.avg_covered_charges
-    
   
-  computeWeightedMeans: () ->
-    weights = _.pluck(@data, 'total_discharges')
-    weightDivider =  _.reduce(weights, (sum, num) -> (sum + num))
-    weightedTotals = 0.0
-    @data.forEach (d) ->
-      weightedTotals += d.total_discharges*d.avg_covered_charges
-    
-    mean = weightedTotals/weightDivider
-    console.log("Mean: " + mean)
     
   render: () ->
-    @computeWeightedMeans()
+    if @indicator == 'charges'
+      @renderComparison()
     points = []
     #@xScale.domain([0, d3.max(@data, this.xIndicator)])
     @xScale.domain(d3.extent(@data, @xIndicator))
@@ -339,14 +339,16 @@ $ ->
     meanCharges = $target.data('charges')
     name = $target.text()
     $("#select-msg").text(name)
-    d3.json "/providers/inpatient_charges_new.json?id=" + id, renderContainer
+    container.meanPayments = meanPayments
+    container.meanCharges = meanCharges
+    d3.json "/providers/inpatient_charges.json?id=" + id, renderContainer
   )
 
 
 storeDrgs = (error, data) ->
   drgs = data
   data.forEach (d) ->
-    elem = "<li><a data-id=" + d.id + "data-payments=" + d.weighted_mean_payments + "data-charges=" + d.weighted_charge_payments + "href=#>" + d.definition + "</a></li>"
+    elem = "<li><a data-id=" + d.id + " data-payments=" + d.weighted_mean_payments + " data-charges=" + d.weighted_mean_charges + " href=#>" + d.definition + "</a></li>"
     $(".dropdown-menu").append(elem)
   
 
