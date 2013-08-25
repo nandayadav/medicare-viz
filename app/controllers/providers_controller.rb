@@ -23,7 +23,7 @@ class ProvidersController < ApplicationController
   
   def drgs
     drgs = DiagnosticRelatedGroup.all
-    render :json => drgs.to_json(:only => [:definition, :id], :root => false)
+    render :json => drgs.to_json(:only => [:definition, :id, :weighted_mean_payments, :weighted_mean_charges], :root => false)
   end
   
   def inpatient_charges

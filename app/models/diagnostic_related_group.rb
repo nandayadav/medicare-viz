@@ -1,6 +1,8 @@
 class DiagnosticRelatedGroup < ActiveRecord::Base
   has_many :inpatient_charges, :dependent => :destroy
   
+  attr_accessible :weighted_mean_payments, :weighted_mean_charges
+  
   def charges
     @charges ||= inpatient_charges
   end

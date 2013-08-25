@@ -1,4 +1,4 @@
-/*!
+dropdo/*!
  * Bootstrap v3.0.0
  *
  * Copyright 2013 Twitter, Inc
@@ -2434,6 +2434,8 @@ textarea.input-group-lg > .input-group-btn > .btn {
   -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
           box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
   background-clip: padding-box;
+  max-height: 250px;
+  overflow-y: scroll;
 }
 
 .dropdown-menu.pull-right {

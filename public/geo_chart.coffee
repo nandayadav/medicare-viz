@@ -80,7 +80,7 @@ class HexChart
     selected = []
     #Click on the background
     if (e[0] == e[1]) 
-      @geo.renderSelected(@data, @indicator, 11, 22)
+      @geo.renderSelected(@data, @indicator, @xScale.invert(0), @xScale.invert(@width))
     else
       @data.forEach (d) ->
         selected.push(d) if (e[0] <= d.x && d.x <= e[1])
@@ -94,8 +94,19 @@ class HexChart
    #d.avg_total_payments;
     if @indicator == 'payments' then d.avg_total_payments else d.avg_covered_charges
     
-                      
+  
+  computeWeightedMeans: () ->
+    weights = _.pluck(@data, 'total_discharges')
+    weightDivider =  _.reduce(weights, (sum, num) -> (sum + num))
+    weightedTotals = 0.0
+    @data.forEach (d) ->
+      weightedTotals += d.total_discharges*d.avg_covered_charges
+    
+    mean = weightedTotals/weightDivider
+    console.log("Mean: " + mean)
+    
   render: () ->
+    @computeWeightedMeans()
     points = []
     #@xScale.domain([0, d3.max(@data, this.xIndicator)])
     @xScale.domain(d3.extent(@data, @xIndicator))
@@ -238,8 +249,8 @@ class GeoChart
       @selected[bucket] = ids
       intersection = _.intersection(ids, other)
       d3.select("#provider-count").text(intersection.length)
-      leftText = "$ " + Math.floor(left)
-      rightText = "$ " + Math.floor(right)
+      leftText = "$" + Math.floor(left)
+      rightText = "$" + Math.floor(right)
       @updateLabels(bucket, leftText, rightText)
         
       @svg.selectAll("circle").each (d) ->
@@ -323,11 +334,11 @@ second = null
 $ ->
   $(".dropdown-menu").on("click", "li a", (e) ->
     $target = $(e.currentTarget)
-    href = $target.attr('href')
+    id = $target.data('id')
+    meanPayments = $target.data('payments')
+    meanCharges = $target.data('charges')
     name = $target.text()
     $("#select-msg").text(name)
-    
-    id = href.replace("#", "")
     d3.json "/providers/inpatient_charges_new.json?id=" + id, renderContainer
   )
 
@@ -335,7 +346,7 @@ $ ->
 storeDrgs = (error, data) ->
   drgs = data
   data.forEach (d) ->
-    elem = "<li><a href='#" + d.id + "'>" + d.definition + "</a></li>"
+    elem = "<li><a data-id=" + d.id + "data-payments=" + d.weighted_mean_payments + "data-charges=" + d.weighted_charge_payments + "href=#>" + d.definition + "</a></li>"
     $(".dropdown-menu").append(elem)
   
 

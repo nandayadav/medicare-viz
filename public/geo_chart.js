@@ -54,7 +54,7 @@
       e = d3.event.target.extent();
       selected = [];
       if (e[0] === e[1]) {
-        return this.geo.renderSelected(this.data, this.indicator, 11, 22);
+        return this.geo.renderSelected(this.data, this.indicator, this.xScale.invert(0), this.xScale.invert(this.width));
       } else {
         this.data.forEach(function(d) {
           if (e[0] <= d.x && d.x <= e[1]) {
@@ -77,9 +77,24 @@
       }
     };
 
+    HexChart.prototype.computeWeightedMeans = function() {
+      var mean, weightDivider, weightedTotals, weights;
+      weights = _.pluck(this.data, 'total_discharges');
+      weightDivider = _.reduce(weights, function(sum, num) {
+        return sum + num;
+      });
+      weightedTotals = 0.0;
+      this.data.forEach(function(d) {
+        return weightedTotals += d.total_discharges * d.avg_covered_charges;
+      });
+      mean = weightedTotals / weightDivider;
+      return console.log("Mean: " + mean);
+    };
+
     HexChart.prototype.render = function() {
       var points,
         _this = this;
+      this.computeWeightedMeans();
       points = [];
       this.xScale.domain(d3.extent(this.data, this.xIndicator));
       this.xAxis.scale(this.xScale);
@@ -218,8 +233,8 @@
         this.selected[bucket] = ids;
         intersection = _.intersection(ids, other);
         d3.select("#provider-count").text(intersection.length);
-        leftText = "$ " + Math.floor(left);
-        rightText = "$ " + Math.floor(right);
+        leftText = "$" + Math.floor(left);
+        rightText = "$" + Math.floor(right);
         this.updateLabels(bucket, leftText, rightText);
         this.svg.selectAll("circle").each(function(d) {
           if (_.contains(intersection, d.provider_id)) {
@@ -314,7 +329,7 @@
     return $(".dropdown-menu").on("click", "li a", function(e) {
       var $target, href, id, name;
       $target = $(e.currentTarget);
-      href = $target.attr('href');
+      href = $target.data('id');
       name = $target.text();
       $("#select-msg").text(name);
       id = href.replace("#", "");
@@ -326,7 +341,7 @@
     drgs = data;
     return data.forEach(function(d) {
       var elem;
-      elem = "<li><a href='#" + d.id + "'>" + d.definition + "</a></li>";
+      elem = "<li><a data-id=" + d.id + "data-payments=" + d.weighted_mean_payments + "data-charges=" + d.weighted_charge_payments + "href=#>" + d.definition + "</a></li>";
       return $(".dropdown-menu").append(elem);
     });
   };
