@@ -173,15 +173,47 @@ body {
       <hr/>
       
       <div class="row" style="color: #fff;">
-        <h5 id="provider-name"></h5>
-        <!--         <div class="input-group input-group-sm">
+        <h5 id="provider-name" class="col-md-6" style="color: #fff;"></h5>
+        <span>Comparing</span>
+        <div class="btn-group btn-group-sm" id="comparator">
+          <a href="#" class="btn btn-default active" >National</a>
+          <a href="#" class="btn btn-default">State</a>
+        </div>
+<!--         <div class="input-group input-group-sm col-md-6">
           <span class="input-group-addon">Find a Provider:</span>
           <input type="text" class="form-control" placeholder="Provider Name">
         </div> -->
       </div>
       <div class="row" style="margin-top: 10px;">
-        <div class="col-md-9" id="difference"></div>
-        <div class="col-md-3" id="provider-details" style="color: #fff;"></div>
+        <div class="col-md-8" id="difference"></div>
+        <div class="col-md-4" id="provider-details" style="color: #fff;">
+          <table class="table table-condensed">
+            <thead>
+              <tr>
+                <th></th>
+                <th>DRG Details for this Provider</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DRG:</td>
+                <td id="drg-name"></td>
+              </tr>
+              <tr>
+                <td>Avg Charges:</td>
+                <td id="drg-charges"></td>
+              </tr>
+              <tr>
+                <td>Avg Payments:</td>
+                <td id="drg-payments"></td>
+              </tr>
+              <tr>
+                <td>Total Discharges:</td>
+                <td id="drg-discharges"></td>
+              </tr>
+            </tbody>
+          </table>  
+        </div>
       </div>
     </div>
     

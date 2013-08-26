@@ -333,12 +333,17 @@ class BarChart
   constructor: () ->
     @margin = 
       top: 10
-      bottom: 20
-      left: 60
+      bottom: 10
+      left: 80
       right: 60
       
-    @width = 860 - @margin.left - @margin.right
+    @width = 820 - @margin.left - @margin.right
     @height = 500 - @margin.top - @margin.bottom
+    
+    @indicator = 'National'
+    @data
+    
+    @precisionFormat = d3.format(".2f")
       
     @x = d3.scale.ordinal()
               .rangeRoundBands([0, @width], .1)
@@ -357,22 +362,61 @@ class BarChart
                   .attr("transform", "translate(" + @margin.left + "," + @margin.top + ")")
                   
   #Given the avg and actual value, just compute the difference    
-  computeDifference: (d) ->
-    d.avg_covered_charges - d.weighted_mean_charges
+  computeDifference: (d) =>
+    if @indicator == 'National' then (d.avg_total_payments - d.weighted_mean_payments) else (d.avg_total_payments - d.state_avg_total_payments)
+    
+  computeChargesDifference: (d) =>
+    if @indicator == 'National' then (d.avg_covered_charges - d.weighted_mean_charges) else (d.avg_covered_charges - d.state_avg_covered_charges)
                   
   #Behavior when mouse is over bar
-  mouseOver: (d) ->
-    d3.select("#provider-details").text(d.drg_definition)
-    d3.select(this).style("stroke-width", 1.0)
+  mouseOver: (d) =>
+    d3.select("#drg-name").text(d.drg_definition)
+    diff = @precisionFormat(@computeDifference(d))
+    if diff > 0
+      diff = "+" + diff
+    suffix = if @indicator == 'National' then 'Nationally' else 'State wide'
+    payments = "$" + @precisionFormat(d.avg_total_payments) + " (" + diff + ") " + suffix
+    d3.select("#drg-payments").text(payments)
+    chargesDiff = @precisionFormat(@computeChargesDifference(d))
+    if chargesDiff > 0
+      chargesDiff = "+" + chargesDiff
+    charges = "$" + @precisionFormat(d.avg_covered_charges) + " (" + chargesDiff + ") " + suffix
+    d3.select("#drg-charges").text(charges)
+    d3.select("#drg-discharges").text(d.total_discharges)
+    
 
   #Behavior when mouse exits bar
   mouseOut: (d) ->
     d3.select(this).style("stroke-width", 0)
-                
+    
+  update: (indicator) ->
+    @indicator = indicator
+    
+    #Transition axes and bars 
+    @y.domain(d3.extent(@data.charges, @computeDifference)).nice()
+    t1 = @svg.transition().duration(750)
+    t1.select(".x.axis line")
+          .attr("y1", @y(0))
+          .attr("y2", @y(0))
+          
+    t1.select(".y.axis").call(@yAxis)
+    t1.selectAll(".bar")
+        .attr("class", (d) => if @computeDifference(d) < 0 then 'bar negative' else 'bar positive')
+        .attr("y", (d) => @y(Math.max(0, @computeDifference(d))) )
+        .attr("height", (d) => Math.abs(@y(1) - @y(@computeDifference(d))) )
+          
+    
   render: (data) ->
-    d3.select("#provider-name").text(data.name + " (" + data.city + ", " +data.state_code + ")")
-    @x.domain(data.charges.map((d) -> d.id ))
-    @y.domain(d3.extent(data.charges, @computeDifference)).nice()
+    @data = data
+    d3.select("#provider-name").text(@data.name + " (" + @data.city + ", " + @data.state_code + ")")
+    @x.domain(@data.charges.map((d) -> d.id ))
+    @y.domain(d3.extent(@data.charges, @computeDifference)).nice()
+    
+    that = @
+    
+    @svg.append("text")
+      .attr("transform", "translate(" + @width/2 + "," + @height - 20 +  ")")
+      .text("Diagnostic Related Group(DRG)")
     
     @svg.select(".x.axis").remove()
     @svg.append("g")
@@ -382,6 +426,8 @@ class BarChart
       .attr("y1", @y(0))
       .attr("y2", @y(0))
       .style("stroke-width", 0.5)
+      
+
     
 
     @svg.select(".y.axis").remove()
@@ -389,10 +435,13 @@ class BarChart
         .attr("class", "y axis")
         .call(@yAxis)
       .append("text")
+        .attr("transform", "translate(-60," + @width/2 + ")" + "rotate(-90)")
+        #.attr("transform", "rotate(-90)")
+        .text("Difference with Weighted Average Payments Nationally")
 
     @svg.selectAll(".bar").remove()
     @svg.selectAll(".bar")
-        .data(data.charges)
+        .data(@data.charges)
       .enter().append("rect")
         .attr("class", "bar")
         .attr("class", (d) => if @computeDifference(d) < 0 then 'bar negative' else 'bar positive')
@@ -400,7 +449,10 @@ class BarChart
         .attr("width", @x.rangeBand())
         .attr("y", (d) => @y(Math.max(0, @computeDifference(d))) )
         .attr("height", (d) => Math.abs(@y(1) - @y(@computeDifference(d))) )
-        .on("mouseover", @mouseOver)
+        .on("mouseover", (d) -> 
+          d3.select(this).style("stroke-width", 1.0)
+          that.mouseOver(d)
+        )
         .on("mouseout", @mouseOut)
   
     
@@ -425,6 +477,14 @@ $ ->
     container.meanPayments = meanPayments
     container.meanCharges = meanCharges
     d3.json "/providers/inpatient_charges.json?id=" + id, renderContainer
+  )
+  
+  $("#comparator").on("click", "a", (e) ->
+    $target = $(e.currentTarget)
+    $("#comparator a").toggleClass("active")
+    e.preventDefault()
+    console.log($target.html())
+    barChart.update($target.html())
   )
 
 

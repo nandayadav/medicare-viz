@@ -328,14 +328,22 @@
   BarChart = (function() {
 
     function BarChart() {
+      this.mouseOver = __bind(this.mouseOver, this);
+
+      this.computeChargesDifference = __bind(this.computeChargesDifference, this);
+
+      this.computeDifference = __bind(this.computeDifference, this);
       this.margin = {
         top: 10,
-        bottom: 20,
-        left: 60,
+        bottom: 10,
+        left: 80,
         right: 60
       };
-      this.width = 860 - this.margin.left - this.margin.right;
+      this.width = 820 - this.margin.left - this.margin.right;
       this.height = 500 - this.margin.top - this.margin.bottom;
+      this.indicator = 'National';
+      this.data;
+      this.precisionFormat = d3.format(".2f");
       this.x = d3.scale.ordinal().rangeRoundBands([0, this.width], .1);
       this.y = d3.scale.linear().range([this.height, 0]);
       this.yAxis = d3.svg.axis().scale(this.y).orient("left");
@@ -343,31 +351,82 @@
     }
 
     BarChart.prototype.computeDifference = function(d) {
-      return d.avg_covered_charges - d.weighted_mean_charges;
+      if (this.indicator === 'National') {
+        return d.avg_total_payments - d.weighted_mean_payments;
+      } else {
+        return d.avg_total_payments - d.state_avg_total_payments;
+      }
+    };
+
+    BarChart.prototype.computeChargesDifference = function(d) {
+      if (this.indicator === 'National') {
+        return d.avg_covered_charges - d.weighted_mean_charges;
+      } else {
+        return d.avg_covered_charges - d.state_avg_covered_charges;
+      }
     };
 
     BarChart.prototype.mouseOver = function(d) {
-      d3.select("#provider-details").text(d.drg_definition);
-      return d3.select(this).style("stroke-width", 1.0);
+      var charges, chargesDiff, diff, payments, suffix;
+      d3.select("#drg-name").text(d.drg_definition);
+      diff = this.precisionFormat(this.computeDifference(d));
+      if (diff > 0) {
+        diff = "+" + diff;
+      }
+      suffix = this.indicator === 'National' ? 'Nationally' : 'State wide';
+      payments = "$" + this.precisionFormat(d.avg_total_payments) + " (" + diff + ") " + suffix;
+      d3.select("#drg-payments").text(payments);
+      chargesDiff = this.precisionFormat(this.computeChargesDifference(d));
+      if (chargesDiff > 0) {
+        chargesDiff = "+" + chargesDiff;
+      }
+      charges = "$" + this.precisionFormat(d.avg_covered_charges) + " (" + chargesDiff + ") " + suffix;
+      d3.select("#drg-charges").text(charges);
+      return d3.select("#drg-discharges").text(d.total_discharges);
     };
 
     BarChart.prototype.mouseOut = function(d) {
       return d3.select(this).style("stroke-width", 0);
     };
 
+    BarChart.prototype.update = function(indicator) {
+      var t1,
+        _this = this;
+      this.indicator = indicator;
+      this.y.domain(d3.extent(this.data.charges, this.computeDifference)).nice();
+      t1 = this.svg.transition().duration(750);
+      t1.select(".x.axis line").attr("y1", this.y(0)).attr("y2", this.y(0));
+      t1.select(".y.axis").call(this.yAxis);
+      return t1.selectAll(".bar").attr("class", function(d) {
+        if (_this.computeDifference(d) < 0) {
+          return 'bar negative';
+        } else {
+          return 'bar positive';
+        }
+      }).attr("y", function(d) {
+        return _this.y(Math.max(0, _this.computeDifference(d)));
+      }).attr("height", function(d) {
+        return Math.abs(_this.y(1) - _this.y(_this.computeDifference(d)));
+      });
+    };
+
     BarChart.prototype.render = function(data) {
-      var _this = this;
-      d3.select("#provider-name").text(data.name + " (" + data.city + ", " + data.state_code + ")");
-      this.x.domain(data.charges.map(function(d) {
+      var that,
+        _this = this;
+      this.data = data;
+      d3.select("#provider-name").text(this.data.name + " (" + this.data.city + ", " + this.data.state_code + ")");
+      this.x.domain(this.data.charges.map(function(d) {
         return d.id;
       }));
-      this.y.domain(d3.extent(data.charges, this.computeDifference)).nice();
+      this.y.domain(d3.extent(this.data.charges, this.computeDifference)).nice();
+      that = this;
+      this.svg.append("text").attr("transform", "translate(" + this.width / 2 + "," + this.height - 20 + ")").text("Diagnostic Related Group(DRG)");
       this.svg.select(".x.axis").remove();
       this.svg.append("g").attr("class", "x axis").append("line").attr("x2", this.width).attr("y1", this.y(0)).attr("y2", this.y(0)).style("stroke-width", 0.5);
       this.svg.select(".y.axis").remove();
-      this.svg.append("g").attr("class", "y axis").call(this.yAxis).append("text");
+      this.svg.append("g").attr("class", "y axis").call(this.yAxis).append("text").attr("transform", "translate(-60," + this.width / 2 + ")" + "rotate(-90)").text("Difference with Weighted Average Payments Nationally");
       this.svg.selectAll(".bar").remove();
-      return this.svg.selectAll(".bar").data(data.charges).enter().append("rect").attr("class", "bar").attr("class", function(d) {
+      return this.svg.selectAll(".bar").data(this.data.charges).enter().append("rect").attr("class", "bar").attr("class", function(d) {
         if (_this.computeDifference(d) < 0) {
           return 'bar negative';
         } else {
@@ -379,7 +438,10 @@
         return _this.y(Math.max(0, _this.computeDifference(d)));
       }).attr("height", function(d) {
         return Math.abs(_this.y(1) - _this.y(_this.computeDifference(d)));
-      }).on("mouseover", this.mouseOver).on("mouseout", this.mouseOut);
+      }).on("mouseover", function(d) {
+        d3.select(this).style("stroke-width", 1.0);
+        return that.mouseOver(d);
+      }).on("mouseout", this.mouseOut);
     };
 
     return BarChart;
@@ -399,7 +461,7 @@
   second = null;
 
   $(function() {
-    return $(".dropdown-menu").on("click", "li a", function(e) {
+    $(".dropdown-menu").on("click", "li a", function(e) {
       var $target, id, meanCharges, meanPayments, name;
       $target = $(e.currentTarget);
       id = $target.data('id');
@@ -410,6 +472,14 @@
       container.meanPayments = meanPayments;
       container.meanCharges = meanCharges;
       return d3.json("/providers/inpatient_charges.json?id=" + id, renderContainer);
+    });
+    return $("#comparator").on("click", "a", function(e) {
+      var $target;
+      $target = $(e.currentTarget);
+      $("#comparator a").toggleClass("active");
+      e.preventDefault();
+      console.log($target.html());
+      return barChart.update($target.html());
     });
   });
 
