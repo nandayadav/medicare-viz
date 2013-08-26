@@ -6,6 +6,11 @@ class ProvidersController < ApplicationController
     render :json => @providers.to_json(:methods => [:total_payments])
   end
   
+  def provider_ids
+    @providers = Provider.all.map{|p| {id: p.id, value: p.name} }
+    render :json => @providers.to_json
+  end
+  
   def states
     @states = State.all
     render :json => @states.to_json(:methods => [:total_payments, :std_deviation_payments, :std_deviation_charges, :std_deviation_discharges, :count], :root => false)

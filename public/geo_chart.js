@@ -210,11 +210,21 @@
     };
 
     GeoChart.prototype.handleClick = function(d) {
-      var that, url;
+      var dest, that, url;
       url = "/providers/" + d.provider_id;
       that = this;
+      dest;
+
+      if ($('#difference').offset().top > $(document).height() - $(window).height()) {
+        dest = $(document).height() - $(window).height();
+      } else {
+        dest = $('#difference').offset().top;
+      }
+      $('html,body').animate({
+        scrollTop: dest
+      }, 500, 'swing');
       return d3.json(url, function(error, data) {
-        return that.barChart.render(data);
+        return that.barChart.renderWithSelection(data, d.diagnostic_related_group_id);
       });
     };
 
@@ -367,8 +377,9 @@
     };
 
     BarChart.prototype.mouseOver = function(d) {
-      var charges, chargesDiff, diff, payments, suffix;
-      $("#drg-name").text(d.drg_definition);
+      var charges, chargesDiff, diff, friendlyDefn, payments, suffix;
+      friendlyDefn = d.drg_definition.split(" - ")[1];
+      $("#drg-name").text(friendlyDefn);
       diff = this.precisionFormat(this.computeDifference(d));
       if (diff > 0) {
         diff = "+" + diff;
@@ -387,10 +398,6 @@
       return $("#drg-national-payments").val("$" + this.precisionFormat(d.weighted_mean_payments));
     };
 
-    BarChart.prototype.mouseOut = function(d) {
-      return d3.select(this).style("stroke-width", 0);
-    };
-
     BarChart.prototype.update = function(indicator) {
       var t1,
         _this = this;
@@ -399,7 +406,7 @@
       t1 = this.svg.transition().duration(750);
       t1.select(".x.axis line").attr("y1", this.y(0)).attr("y2", this.y(0));
       t1.select(".y.axis").call(this.yAxis);
-      return t1.selectAll(".bar").attr("class", function(d) {
+      t1.selectAll(".bar").attr("class", function(d) {
         if (_this.computeDifference(d) < 0) {
           return 'bar negative';
         } else {
@@ -410,6 +417,7 @@
       }).attr("height", function(d) {
         return Math.abs(_this.y(1) - _this.y(_this.computeDifference(d)));
       });
+      return this.updateInfo();
     };
 
     BarChart.prototype.updateInfo = function() {
@@ -430,6 +438,20 @@
       return $("#p-below-payments").val(belowCount);
     };
 
+    BarChart.prototype.renderWithSelection = function(data, drg) {
+      var s, selected;
+      this.render(data);
+      s = null;
+      data.charges.map(function(d) {
+        if (d.drg_id === drg) {
+          return s = d;
+        }
+      });
+      this.mouseOver(s);
+      selected = this.svg.select("#drg-" + drg);
+      return selected.style("stroke-width", 1.0);
+    };
+
     BarChart.prototype.render = function(data) {
       var that,
         _this = this;
@@ -446,7 +468,9 @@
       this.svg.select(".y.axis").remove();
       this.svg.append("g").attr("class", "y axis").call(this.yAxis).append("text").attr("transform", "translate(-60," + 380 + ")" + "rotate(-90)").text("Difference with Weighted Average Payments Nationally");
       this.svg.selectAll(".bar").remove();
-      return this.svg.selectAll(".bar").data(this.data.charges).enter().append("rect").attr("class", "bar").attr("class", function(d) {
+      return this.svg.selectAll(".bar").data(this.data.charges).enter().append("rect").attr("class", "bar").attr("id", function(d) {
+        return "drg-" + d.drg_id;
+      }).attr("class", function(d) {
         if (_this.computeDifference(d) < 0) {
           return 'bar negative';
         } else {
@@ -459,9 +483,10 @@
       }).attr("height", function(d) {
         return Math.abs(_this.y(1) - _this.y(_this.computeDifference(d)));
       }).on("mouseover", function(d) {
+        d3.selectAll(".bar").style("stroke-width", 0);
         d3.select(this).style("stroke-width", 1.0);
         return that.mouseOver(d);
-      }).on("mouseout", this.mouseOut);
+      });
     };
 
     return BarChart;
@@ -485,6 +510,7 @@
       var $target, id, meanCharges, meanPayments, name;
       $target = $(e.currentTarget);
       id = $target.data('id');
+      $(".icon-spinner").show();
       meanPayments = $target.data('payments');
       meanCharges = $target.data('charges');
       name = $target.text();
@@ -495,19 +521,21 @@
     });
     return $("#comparator").on("click", "a", function(e) {
       var $target;
-      $target = $(e.currentTarget);
-      $("#comparator a").toggleClass("active");
       e.preventDefault();
-      console.log($target.html());
-      return barChart.update($target.html());
+      $target = $(e.currentTarget);
+      if (barChart.indicator !== $target.html()) {
+        $("#comparator a").toggleClass("active btn-success");
+        return barChart.update($target.html());
+      }
     });
   });
 
   storeDrgs = function(error, data) {
     drgs = data;
     return data.forEach(function(d) {
-      var elem;
-      elem = "<li><a data-id=" + d.id + " data-payments=" + d.weighted_mean_payments + " data-charges=" + d.weighted_mean_charges + " href=#>" + d.definition + "</a></li>";
+      var elem, friendlyDefn;
+      friendlyDefn = d.definition.split(" - ")[1];
+      elem = "<li><a data-id=" + d.id + " data-payments=" + d.weighted_mean_payments + " data-charges=" + d.weighted_mean_charges + " href=#>" + friendlyDefn + "</a></li>";
       return $(".dropdown-menu").append(elem);
     });
   };
@@ -532,7 +560,8 @@
     }
     first.render();
     first.geo.renderProviders(data);
-    return second.render();
+    second.render();
+    return $(".icon-spinner").hide();
   };
 
   d3.json("/providers/drgs.json", storeDrgs);

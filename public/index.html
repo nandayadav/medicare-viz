@@ -6,7 +6,9 @@
     <!-- Bootstrap -->
     
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/themes/base/jquery-ui.css" />
-    <link href="css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet"/>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet"/>
+    <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
     <style>
 
 circle {
@@ -119,6 +121,7 @@ body {
           <ul class="dropdown-menu">
           </ul>
         </div>
+        <i class="icon-spinner icon-spin icon-large" style="color: #fff; display: none;"></i>
         <hr/>
       </div>
       <div class="row">
@@ -134,12 +137,14 @@ body {
         </div>
       </div>
       <div class="row">
+        
         <div id="provider-info" style="color: white;">
           <p>
             Displaying <span class="label label-danger" id="provider-count"></span> providers with Total charges between 
             <span class="label label-danger" id="charges-left"></span> and <span class="label label-danger" id="charges-right"></span> And
             Total Average Payments between <span class="label label-danger" id="payments-left"></span> and <span class="label label-danger" id="payments-right"></span>
           </p>
+          <p>*Tip: Try clamping selection in Charges for example then changing in Payments and vice-versa to see trends shift across the country</p>
         </div>
         <hr/>
       </div>
@@ -172,21 +177,24 @@ body {
       </div>
       <hr/>
       
-      <div class="row" style="color: #fff;">
+      <div class="row" style="color: #fff;" href="#difference">
         <h5 class="col-md-6">Difference Chart comparing DRG payments against National/State Averages</h5>
         <span>Comparing</span>
         <div class="btn-group btn-group-sm" id="comparator">
-          <a href="#" class="btn btn-default active" >National</a>
+          <a href="#" class="btn btn-default active btn-success" >National</a>
           <a href="#" class="btn btn-default">State</a>
         </div>
-<!--         <div class="input-group input-group-sm col-md-6">
-          <span class="input-group-addon">Find a Provider:</span>
-          <input type="text" class="form-control" placeholder="Provider Name">
-        </div> -->
       </div>
       <div class="row" style="margin-top: 10px;">
-        <div class="col-md-8" id="difference" style="min-height: 530px;"></div>
+        <div class="col-md-8" id="difference" style="min-height: 530px;">
+<!--         <div class="input-group input-group-sm" id="provider-selector">
+          <input type="text" class="form-control typeahead" placeholder="Find a Provider" style="color: #fff;">
+        </div> -->
+        </div>
+        
         <div class="col-md-4" id="provider-details">
+          
+          <h6 style="color: #fff;">Provider Details</h6>
           <span id="p-name" style="color: #fff;"></span>
           <div class="input-group input-group-sm" style="margin-bottom: 2px;">
             <span class="input-group-addon"># of DRGs:</span>
@@ -202,6 +210,7 @@ body {
           </div>
         </div>
         <div class="col-md-4" id="drg-details" style="margin-top: 20px;">
+          <h6 style="color: #fff;">DRG Details</h6>
           <span id="drg-name" style="color: #fff;"></span>
           <div class="input-group input-group-sm" style="margin-bottom: 2px;">
             <span class="input-group-addon">Avg Charges:</span>
@@ -223,33 +232,6 @@ body {
             <span class="input-group-addon">National Avg(Payments):</span>
             <input type="text" class="form-control" id="drg-national-payments">
           </div>
-        
-          <table class="table table-condensed" style="color: #fff; display: none;">
-            <thead>
-              <tr>
-                <th></th>
-                <th>DRG Details for this Provider</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>DRG:</td>
-                <td id="drg-name"></td>
-              </tr>
-              <tr>
-                <td>Avg Charges:</td>
-                <td id="drg-charges"></td>
-              </tr>
-              <tr>
-                <td>Avg Payments:</td>
-                <td id="drg-payments"></td>
-              </tr>
-              <tr>
-                <td>Total Discharges:</td>
-                <td id="drg-discharges"></td>
-              </tr>
-            </tbody>
-          </table>  
         </div>
       </div>
     </div>

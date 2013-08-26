@@ -108,6 +108,7 @@ class HexChart
     if @indicator == 'charges'
       @renderComparison()
     points = []
+    #d3.select(".brush").call(@brush.clear())
     #@xScale.domain([0, d3.max(@data, this.xIndicator)])
     @xScale.domain(d3.extent(@data, @xIndicator)).nice()
     @xAxis.scale(@xScale)
@@ -137,6 +138,8 @@ class HexChart
         .attr("d", @hexbin.hexagon())
         .attr("transform", (d) -> "translate(" + d.x + "," + d.y + ")" )
         .style("fill", (d) => @color(d.length))
+        
+    #@svg.select(".brush").remove()
         
     @svg.append("g")
           .attr("class", "brush")
@@ -226,8 +229,16 @@ class GeoChart
   handleClick: (d) =>
     url = "/providers/" + d.provider_id
     that = @
+    dest
+    if ($('#difference').offset().top > $(document).height() - $(window).height())
+      dest = $(document).height() - $(window).height()
+    else
+      dest = $('#difference').offset().top
+      
+    $('html,body').animate({scrollTop: dest}, 500, 'swing')
     d3.json url, (error, data) ->
-      that.barChart.render(data)
+      # that.barChart.render(data)
+      that.barChart.renderWithSelection(data, d.diagnostic_related_group_id)
     
     
   mouseUp: (d) =>
@@ -370,7 +381,8 @@ class BarChart
                   
   #Behavior when mouse is over bar
   mouseOver: (d) =>
-    $("#drg-name").text(d.drg_definition)
+    friendlyDefn = d.drg_definition.split(" - ")[1]
+    $("#drg-name").text(friendlyDefn)
     diff = @precisionFormat(@computeDifference(d))
     if diff > 0
       diff = "+" + diff
@@ -385,11 +397,6 @@ class BarChart
     $("#drg-discharges-count").val(d.total_discharges)
     $("#drg-state-payments").val("$" + @precisionFormat(d.state_avg_total_payments))
     $("#drg-national-payments").val("$" + @precisionFormat(d.weighted_mean_payments))
-    
-
-  #Behavior when mouse exits bar
-  mouseOut: (d) ->
-    d3.select(this).style("stroke-width", 0)
     
   update: (indicator) ->
     @indicator = indicator
@@ -406,6 +413,7 @@ class BarChart
         .attr("class", (d) => if @computeDifference(d) < 0 then 'bar negative' else 'bar positive')
         .attr("y", (d) => @y(Math.max(0, @computeDifference(d))) )
         .attr("height", (d) => Math.abs(@y(1) - @y(@computeDifference(d))) )
+    @updateInfo()
           
   
   updateInfo: () ->
@@ -423,7 +431,16 @@ class BarChart
     $("#p-below-payments").val(belowCount)
       
     
-    
+  renderWithSelection: (data, drg) ->
+    @render(data)
+    s = null
+    data.charges.map (d) ->
+      if (d.drg_id == drg) 
+        s = d
+    @mouseOver(s)
+    selected = @svg.select("#drg-" + drg)
+    selected.style("stroke-width", 1.0)
+
   render: (data) ->
     @data = data
     @updateInfo()
@@ -462,16 +479,17 @@ class BarChart
         .data(@data.charges)
       .enter().append("rect")
         .attr("class", "bar")
+        .attr("id", (d) -> "drg-" + d.drg_id)
         .attr("class", (d) => if @computeDifference(d) < 0 then 'bar negative' else 'bar positive')
         .attr("x", (d) => @x(d.id) )
         .attr("width", @x.rangeBand())
         .attr("y", (d) => @y(Math.max(0, @computeDifference(d))) )
         .attr("height", (d) => Math.abs(@y(1) - @y(@computeDifference(d))) )
         .on("mouseover", (d) -> 
+          d3.selectAll(".bar").style("stroke-width", 0)
           d3.select(this).style("stroke-width", 1.0)
           that.mouseOver(d)
         )
-        .on("mouseout", @mouseOut)
   
     
     
@@ -488,6 +506,7 @@ $ ->
   $(".dropdown-menu").on("click", "li a", (e) ->
     $target = $(e.currentTarget)
     id = $target.data('id')
+    $(".icon-spinner").show()
     meanPayments = $target.data('payments')
     meanCharges = $target.data('charges')
     name = $target.text()
@@ -498,18 +517,19 @@ $ ->
   )
   
   $("#comparator").on("click", "a", (e) ->
-    $target = $(e.currentTarget)
-    $("#comparator a").toggleClass("active")
     e.preventDefault()
-    console.log($target.html())
-    barChart.update($target.html())
+    $target = $(e.currentTarget)
+    if (barChart.indicator != $target.html()) 
+      $("#comparator a").toggleClass("active btn-success")
+      barChart.update($target.html())
   )
 
 
 storeDrgs = (error, data) ->
   drgs = data
   data.forEach (d) ->
-    elem = "<li><a data-id=" + d.id + " data-payments=" + d.weighted_mean_payments + " data-charges=" + d.weighted_mean_charges + " href=#>" + d.definition + "</a></li>"
+    friendlyDefn = d.definition.split(" - ")[1]
+    elem = "<li><a data-id=" + d.id + " data-payments=" + d.weighted_mean_payments + " data-charges=" + d.weighted_mean_charges + " href=#>" + friendlyDefn + "</a></li>"
     $(".dropdown-menu").append(elem)
   
 
@@ -532,6 +552,7 @@ renderContainer = (error, data) ->
   first.render()
   first.geo.renderProviders(data)
   second.render()
+  $(".icon-spinner").hide()
   
 # $ ->
 d3.json "/providers/drgs.json", storeDrgs

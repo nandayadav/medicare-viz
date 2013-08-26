@@ -1,10 +1,11 @@
 class InpatientChargeSerializer < ActiveModel::Serializer
-  attributes :id, :provider_id, :avg_covered_charges, :avg_total_payments, :total_discharges, :provider
+  attributes :id, :provider_id, :avg_covered_charges, :avg_total_payments, :total_discharges, :provider, :diagnostic_related_group_id
   
   # def cached_provider
   #   @provider ||= provider
   # end
 
+  
   def provider
     p = object.provider
     drg = object.diagnostic_related_group

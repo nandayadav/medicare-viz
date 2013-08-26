@@ -14,6 +14,7 @@ Healthcare::Application.routes.draw do
   #   resources :products 
   resources :providers do
     collection do 
+      get 'provider_ids'
       get 'states'
       get 'drgs'
       get 'drg_stats'
