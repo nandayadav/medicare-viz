@@ -4,7 +4,7 @@ class HexContainer
     @margin = 
       top: 5
       bottom: 0
-      left: 0
+      left: 30
       right: 20
   
     
@@ -109,7 +109,7 @@ class HexChart
       @renderComparison()
     points = []
     #@xScale.domain([0, d3.max(@data, this.xIndicator)])
-    @xScale.domain(d3.extent(@data, @xIndicator))
+    @xScale.domain(d3.extent(@data, @xIndicator)).nice()
     @xAxis.scale(@xScale)
     @data.forEach (d, i) =>
       d.x = @xIndicator(d)
@@ -145,11 +145,9 @@ class HexChart
           .attr("y", 0)
           .attr("height", @hexHeight)
     
-    #@updateList(@data)
-    #@geo.renderProviders(@data)
       
 class GeoChart
-  constructor: (@topology, @div) ->
+  constructor: (@topology, @div, @barChart) ->
     @margin = 
       top: 0
       bottom: 0
@@ -160,7 +158,7 @@ class GeoChart
     @providers = [] 
       
     @width = 900 - @margin.left - @margin.right
-    @height = 640 - @margin.top - @margin.bottom
+    @height = 540 - @margin.top - @margin.bottom
                       
     @projection = d3.geo.albersUsa()
                                      .scale(1100)
@@ -224,6 +222,13 @@ class GeoChart
     selected = d3.select(d3.event.target)
     @findSimilar(d)
     selected.attr("r", 10)
+    
+  handleClick: (d) =>
+    url = "/providers/" + d.provider_id
+    that = @
+    d3.json url, (error, data) ->
+      that.barChart.render(data)
+    
     
   mouseUp: (d) =>
     selected = d3.select(d3.event.target)
@@ -307,11 +312,12 @@ class GeoChart
       .attr("class", "shown")
       .attr("title", @tooltipText)
       .on("mouseover", (d) -> 
-        d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0)
+        d3.select(this).style("fill-opacity", 1.0).style("stroke-width", 1.0).attr("r", 5)
       )
       .on("mouseout", (d) -> 
-        d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2)
+        d3.select(this).style("fill-opacity", 0.5).style("stroke-width", 0.2).attr("r", 4)
       )
+      .on("click", @handleClick)
       .attr("r", 4)
       .attr("cx", (d, i) -> geoPositions[i][0])
       .attr("cy", (d, i) -> geoPositions[i][1])
@@ -323,11 +329,88 @@ class GeoChart
     @updateList(sorted)  
     @attachTooltips()
     
+class BarChart
+  constructor: () ->
+    @margin = 
+      top: 10
+      bottom: 20
+      left: 60
+      right: 60
+      
+    @width = 860 - @margin.left - @margin.right
+    @height = 500 - @margin.top - @margin.bottom
+      
+    @x = d3.scale.ordinal()
+              .rangeRoundBands([0, @width], .1)
+
+    @y = d3.scale.linear()
+              .range([@height, 0])
+
+    @yAxis = d3.svg.axis()
+                    .scale(@y)
+                    .orient("left")
+                    
+    @svg = d3.select("#difference").append("svg")
+                  .attr("width", @width + @margin.left + @margin.right)
+                  .attr("height", @height + @margin.top + @margin.bottom)
+                .append("g")
+                  .attr("transform", "translate(" + @margin.left + "," + @margin.top + ")")
+                  
+  #Given the avg and actual value, just compute the difference    
+  computeDifference: (d) ->
+    d.avg_covered_charges - d.weighted_mean_charges
+                  
+  #Behavior when mouse is over bar
+  mouseOver: (d) ->
+    d3.select("#provider-details").text(d.drg_definition)
+    d3.select(this).style("stroke-width", 1.0)
+
+  #Behavior when mouse exits bar
+  mouseOut: (d) ->
+    d3.select(this).style("stroke-width", 0)
+                
+  render: (data) ->
+    d3.select("#provider-name").text(data.name + " (" + data.city + ", " +data.state_code + ")")
+    @x.domain(data.charges.map((d) -> d.id ))
+    @y.domain(d3.extent(data.charges, @computeDifference)).nice()
+    
+    @svg.select(".x.axis").remove()
+    @svg.append("g")
+      .attr("class", "x axis")
+    .append("line")
+      .attr("x2", @width)
+      .attr("y1", @y(0))
+      .attr("y2", @y(0))
+      .style("stroke-width", 0.5)
+    
+
+    @svg.select(".y.axis").remove()
+    @svg.append("g")
+        .attr("class", "y axis")
+        .call(@yAxis)
+      .append("text")
+
+    @svg.selectAll(".bar").remove()
+    @svg.selectAll(".bar")
+        .data(data.charges)
+      .enter().append("rect")
+        .attr("class", "bar")
+        .attr("class", (d) => if @computeDifference(d) < 0 then 'bar negative' else 'bar positive')
+        .attr("x", (d) => @x(d.id) )
+        .attr("width", @x.rangeBand())
+        .attr("y", (d) => @y(Math.max(0, @computeDifference(d))) )
+        .attr("height", (d) => Math.abs(@y(1) - @y(@computeDifference(d))) )
+        .on("mouseover", @mouseOver)
+        .on("mouseout", @mouseOut)
+  
+    
+    
 
 #Some globals
 geoChart = null
 drgs = []
 container = new HexContainer('#chart')
+barChart = new BarChart()
 first = null
 second = null
 
@@ -353,7 +436,7 @@ storeDrgs = (error, data) ->
   
 
 renderMap = (error, data) ->
-  geoChart = new GeoChart(data, '#map')
+  geoChart = new GeoChart(data, '#map', barChart)
   geoChart.render()   
   
 renderContainer = (error, data) ->

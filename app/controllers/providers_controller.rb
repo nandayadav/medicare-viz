@@ -1,9 +1,5 @@
-require 'opta/parser'
-require 'opta/event'
 class ProvidersController < ApplicationController
-  include Rega::Charts
-  
-  
+
   def index
     @providers = Provider.all
     #@providers = Provider.limit(10)
@@ -17,6 +13,7 @@ class ProvidersController < ApplicationController
   
   #Show provider
   def show
+    #TODO: fix with 1 charge/drg only, eg; 5866
     @provider = Provider.where(:id => params[:id]).includes([:inpatient_charges]).first
     render json: @provider
   end

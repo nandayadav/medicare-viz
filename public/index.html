@@ -72,10 +72,6 @@ body {
   color: #fff;
 }
 
-.bar {
-  fill: red;
-}
-
 .ui-tooltip {
   background: black;
   font: 10px "Helvetica Neue", Sans-Serif;
@@ -83,10 +79,23 @@ body {
 }
 
 #map path {
-      fill: #ccc;
-      stroke: #fff;
-      opacity: 1.0;
-    }
+  fill: #ccc;
+  stroke: #fff;
+  opacity: 1.0;
+}
+
+.bar {
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.bar.positive {
+  fill: red;
+}
+
+.bar.negative {
+  fill: green;
+}
 
 
 
@@ -139,46 +148,43 @@ body {
         <div id="map" class="col-md-9"></div>
         <div class="col-md-3" style="min-height: 210px;padding-top: 5px; color: #fff; padding-left: 45px;">
           <table class="table table-condensed" id="least-expensive">
-          <thead>
-            <tr>
-              <th></th>
-              <th style="color: #3CB476;">Least Expensive Providers</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-        
-        <table class="table table-condensed" id="most-expensive">
             <thead>
               <tr>
                 <th></th>
-                <th style="color: #BB3E4F;">Most Expensive Providers</th>
+                <th style="color: #3CB476;">Least Expensive Providers<br/>(*Based on payments)</th>
               </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-            
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        
+          <table class="table table-condensed" id="most-expensive">
+            <thead>
+              <tr>
+                <th></th>
+                <th style="color: #BB3E4F;">Most Expensive Providers<br/>(*Based on payments)</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>  
         </div>
+      </div>
+      <hr/>
+      
+      <div class="row" style="color: #fff;">
+        <h5 id="provider-name"></h5>
+        <!--         <div class="input-group input-group-sm">
+          <span class="input-group-addon">Find a Provider:</span>
+          <input type="text" class="form-control" placeholder="Provider Name">
+        </div> -->
+      </div>
+      <div class="row" style="margin-top: 10px;">
+        <div class="col-md-9" id="difference"></div>
+        <div class="col-md-3" id="provider-details" style="color: #fff;"></div>
       </div>
     </div>
     
-    
-    <a data-toggle="modal" href="#myModal" class="btn btn-primary btn-lg">Launch demo modal</a>
-    <!-- Modal -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content" style="background-color: #ABCDE3; opacity: 0.9; width: 700px;">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title"></h4>
-          </div>
-          <div class="modal-body" id="difference">
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/js/d3.min.js"></script>
@@ -193,7 +199,6 @@ body {
     <script src="js/bootstrap.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
     <script src="/geo_chart.js"></script>
-    <script src="/js/difference.js"></script>
     
   </body>
 </html>
