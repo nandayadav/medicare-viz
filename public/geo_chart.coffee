@@ -370,19 +370,21 @@ class BarChart
                   
   #Behavior when mouse is over bar
   mouseOver: (d) =>
-    d3.select("#drg-name").text(d.drg_definition)
+    $("#drg-name").text(d.drg_definition)
     diff = @precisionFormat(@computeDifference(d))
     if diff > 0
       diff = "+" + diff
     suffix = if @indicator == 'National' then 'Nationally' else 'State wide'
     payments = "$" + @precisionFormat(d.avg_total_payments) + " (" + diff + ") " + suffix
-    d3.select("#drg-payments").text(payments)
+    $("#drg-payments").val(payments)
     chargesDiff = @precisionFormat(@computeChargesDifference(d))
     if chargesDiff > 0
       chargesDiff = "+" + chargesDiff
     charges = "$" + @precisionFormat(d.avg_covered_charges) + " (" + chargesDiff + ") " + suffix
-    d3.select("#drg-charges").text(charges)
-    d3.select("#drg-discharges").text(d.total_discharges)
+    $("#drg-charges").val(charges)
+    $("#drg-discharges-count").val(d.total_discharges)
+    $("#drg-state-payments").val("$" + @precisionFormat(d.state_avg_total_payments))
+    $("#drg-national-payments").val("$" + @precisionFormat(d.weighted_mean_payments))
     
 
   #Behavior when mouse exits bar
@@ -405,17 +407,33 @@ class BarChart
         .attr("y", (d) => @y(Math.max(0, @computeDifference(d))) )
         .attr("height", (d) => Math.abs(@y(1) - @y(@computeDifference(d))) )
           
+  
+  updateInfo: () ->
+    d3.select("#p-name").text(@data.name + " (" + @data.city + ", " + @data.state_code + ")")
+    $("#p-drg-count").val(@data.charges.length)
+    aboveCount = 0
+    belowCount = 0
+    that = @
+    @data.charges.map (d) -> 
+      if that.computeDifference(d) > 0
+        aboveCount += 1
+      else
+        belowCount += 1
+    $("#p-above-payments").val(aboveCount)
+    $("#p-below-payments").val(belowCount)
+      
+    
     
   render: (data) ->
     @data = data
-    d3.select("#provider-name").text(@data.name + " (" + @data.city + ", " + @data.state_code + ")")
+    @updateInfo()
     @x.domain(@data.charges.map((d) -> d.id ))
     @y.domain(d3.extent(@data.charges, @computeDifference)).nice()
     
     that = @
     
     @svg.append("text")
-      .attr("transform", "translate(" + @width/2 + "," + @height - 20 +  ")")
+      .attr("transform", "translate(340, 520)" + "rotate(0)")
       .text("Diagnostic Related Group(DRG)")
     
     @svg.select(".x.axis").remove()
@@ -435,7 +453,7 @@ class BarChart
         .attr("class", "y axis")
         .call(@yAxis)
       .append("text")
-        .attr("transform", "translate(-60," + @width/2 + ")" + "rotate(-90)")
+        .attr("transform", "translate(-60," + 380 + ")" + "rotate(-90)")
         #.attr("transform", "rotate(-90)")
         .text("Difference with Weighted Average Payments Nationally")
 

@@ -144,7 +144,7 @@ body {
         <hr/>
       </div>
       
-      <div class="row">
+      <div class="row" style="min-height: 610px;">
         <div id="map" class="col-md-9"></div>
         <div class="col-md-3" style="min-height: 210px;padding-top: 5px; color: #fff; padding-left: 45px;">
           <table class="table table-condensed" id="least-expensive">
@@ -173,7 +173,7 @@ body {
       <hr/>
       
       <div class="row" style="color: #fff;">
-        <h5 id="provider-name" class="col-md-6" style="color: #fff;"></h5>
+        <h5 class="col-md-6">Difference Chart comparing DRG payments against National/State Averages</h5>
         <span>Comparing</span>
         <div class="btn-group btn-group-sm" id="comparator">
           <a href="#" class="btn btn-default active" >National</a>
@@ -185,9 +185,46 @@ body {
         </div> -->
       </div>
       <div class="row" style="margin-top: 10px;">
-        <div class="col-md-8" id="difference"></div>
-        <div class="col-md-4" id="provider-details" style="color: #fff;">
-          <table class="table table-condensed">
+        <div class="col-md-8" id="difference" style="min-height: 530px;"></div>
+        <div class="col-md-4" id="provider-details">
+          <span id="p-name" style="color: #fff;"></span>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon"># of DRGs:</span>
+            <input type="text" class="form-control" id="p-drg-count">
+          </div>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon"># of DRGs with Below avg payments:</span>
+            <input type="text" style="color: green;" class="form-control" id="p-below-payments">
+          </div>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon"># of DRGs with Above avg payments:</span>
+            <input type="text" style="color: red;" class="form-control" id="p-above-payments">
+          </div>
+        </div>
+        <div class="col-md-4" id="drg-details" style="margin-top: 20px;">
+          <span id="drg-name" style="color: #fff;"></span>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon">Avg Charges:</span>
+            <input type="text" class="form-control" id="drg-charges">
+          </div>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon">Avg Payments:</span>
+            <input type="text" class="form-control" id="drg-payments">
+          </div>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon"># Discharges:</span>
+            <input type="text" class="form-control" id="drg-discharges-count">
+          </div>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon">State Avg(Payments):</span>
+            <input type="text" class="form-control" id="drg-state-payments">
+          </div>
+          <div class="input-group input-group-sm" style="margin-bottom: 2px;">
+            <span class="input-group-addon">National Avg(Payments):</span>
+            <input type="text" class="form-control" id="drg-national-payments">
+          </div>
+        
+          <table class="table table-condensed" style="color: #fff; display: none;">
             <thead>
               <tr>
                 <th></th>

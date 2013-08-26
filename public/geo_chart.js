@@ -368,21 +368,23 @@
 
     BarChart.prototype.mouseOver = function(d) {
       var charges, chargesDiff, diff, payments, suffix;
-      d3.select("#drg-name").text(d.drg_definition);
+      $("#drg-name").text(d.drg_definition);
       diff = this.precisionFormat(this.computeDifference(d));
       if (diff > 0) {
         diff = "+" + diff;
       }
       suffix = this.indicator === 'National' ? 'Nationally' : 'State wide';
       payments = "$" + this.precisionFormat(d.avg_total_payments) + " (" + diff + ") " + suffix;
-      d3.select("#drg-payments").text(payments);
+      $("#drg-payments").val(payments);
       chargesDiff = this.precisionFormat(this.computeChargesDifference(d));
       if (chargesDiff > 0) {
         chargesDiff = "+" + chargesDiff;
       }
       charges = "$" + this.precisionFormat(d.avg_covered_charges) + " (" + chargesDiff + ") " + suffix;
-      d3.select("#drg-charges").text(charges);
-      return d3.select("#drg-discharges").text(d.total_discharges);
+      $("#drg-charges").val(charges);
+      $("#drg-discharges-count").val(d.total_discharges);
+      $("#drg-state-payments").val("$" + this.precisionFormat(d.state_avg_total_payments));
+      return $("#drg-national-payments").val("$" + this.precisionFormat(d.weighted_mean_payments));
     };
 
     BarChart.prototype.mouseOut = function(d) {
@@ -410,21 +412,39 @@
       });
     };
 
+    BarChart.prototype.updateInfo = function() {
+      var aboveCount, belowCount, that;
+      d3.select("#p-name").text(this.data.name + " (" + this.data.city + ", " + this.data.state_code + ")");
+      $("#p-drg-count").val(this.data.charges.length);
+      aboveCount = 0;
+      belowCount = 0;
+      that = this;
+      this.data.charges.map(function(d) {
+        if (that.computeDifference(d) > 0) {
+          return aboveCount += 1;
+        } else {
+          return belowCount += 1;
+        }
+      });
+      $("#p-above-payments").val(aboveCount);
+      return $("#p-below-payments").val(belowCount);
+    };
+
     BarChart.prototype.render = function(data) {
       var that,
         _this = this;
       this.data = data;
-      d3.select("#provider-name").text(this.data.name + " (" + this.data.city + ", " + this.data.state_code + ")");
+      this.updateInfo();
       this.x.domain(this.data.charges.map(function(d) {
         return d.id;
       }));
       this.y.domain(d3.extent(this.data.charges, this.computeDifference)).nice();
       that = this;
-      this.svg.append("text").attr("transform", "translate(" + this.width / 2 + "," + this.height - 20 + ")").text("Diagnostic Related Group(DRG)");
+      this.svg.append("text").attr("transform", "translate(340, 520)" + "rotate(0)").text("Diagnostic Related Group(DRG)");
       this.svg.select(".x.axis").remove();
       this.svg.append("g").attr("class", "x axis").append("line").attr("x2", this.width).attr("y1", this.y(0)).attr("y2", this.y(0)).style("stroke-width", 0.5);
       this.svg.select(".y.axis").remove();
-      this.svg.append("g").attr("class", "y axis").call(this.yAxis).append("text").attr("transform", "translate(-60," + this.width / 2 + ")" + "rotate(-90)").text("Difference with Weighted Average Payments Nationally");
+      this.svg.append("g").attr("class", "y axis").call(this.yAxis).append("text").attr("transform", "translate(-60," + 380 + ")" + "rotate(-90)").text("Difference with Weighted Average Payments Nationally");
       this.svg.selectAll(".bar").remove();
       return this.svg.selectAll(".bar").data(this.data.charges).enter().append("rect").attr("class", "bar").attr("class", function(d) {
         if (_this.computeDifference(d) < 0) {
