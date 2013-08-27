@@ -32,6 +32,8 @@
       this.container = container;
       this.indicator = indicator;
       this.yPosition = yPosition;
+      this.mouseOver = __bind(this.mouseOver, this);
+
       this.xIndicator = __bind(this.xIndicator, this);
 
       this.brushMove = __bind(this.brushMove, this);
@@ -87,6 +89,10 @@
       }
     };
 
+    HexChart.prototype.mouseOver = function(d) {
+      return console.log("Moused over");
+    };
+
     HexChart.prototype.render = function() {
       var points,
         _this = this;
@@ -94,6 +100,8 @@
         this.renderComparison();
       }
       points = [];
+      this.svg.select(".brush").call(this.brush.clear());
+      this.svg.select(".brush").remove();
       this.xScale.domain(d3.extent(this.data, this.xIndicator)).nice();
       this.xAxis.scale(this.xScale);
       this.data.forEach(function(d, i) {
@@ -117,7 +125,7 @@
         return "translate(" + d.x + "," + d.y + ")";
       }).style("fill", function(d) {
         return _this.color(d.length);
-      });
+      }).on("mouseover", this.mouseOver);
       return this.svg.append("g").attr("class", "brush").call(this.brush).selectAll("rect").attr("y", 0).attr("height", this.hexHeight);
     };
 
@@ -213,6 +221,7 @@
       var dest, that, url;
       url = "/providers/" + d.provider_id;
       that = this;
+      $(".step2").removeClass("hidden");
       dest;
 
       if ($('#difference').offset().top > $(document).height() - $(window).height()) {
@@ -508,6 +517,7 @@
   $(function() {
     $(".dropdown-menu").on("click", "li a", function(e) {
       var $target, id, meanCharges, meanPayments, name;
+      e.preventDefault();
       $target = $(e.currentTarget);
       id = $target.data('id');
       $(".icon-spinner").show();
@@ -561,6 +571,7 @@
     first.render();
     first.geo.renderProviders(data);
     second.render();
+    $(".step1").removeClass("hidden");
     return $(".icon-spinner").hide();
   };
 

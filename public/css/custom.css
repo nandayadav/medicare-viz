@@ -1,0 +1,98 @@
+circle {
+  stroke: #000;
+  stroke-width: 0.2px;
+  fill: #C34BBD;
+  fill-opacity: 0.5;
+}
+
+text {
+  fill: #fff;
+ }
+    
+.axis line {
+  fill: none;
+  stroke-width: 2.0px;
+  stroke: #ebebeb;
+}
+.axis path {
+  fill: none;
+  stroke: #ebebeb;
+  shape-rendering: crispEdges;
+}
+
+/*.users {
+  stroke: none;
+}*/
+
+.songs {
+  stroke: none;
+}
+
+line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1px;
+/*  shape-rendering: crispEdges;*/
+}
+
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: 0.325;
+  shape-rendering: crispEdges;
+}
+
+.hexagon {
+  fill: none;
+/*  stroke: #0B221D;
+  stroke-width: .5px;*/
+}
+
+.inactive {
+  display: none;
+}
+
+body {
+  background-color: #1B4550;
+  color: #fff;
+}
+
+#controls {
+  margin-left: 10px;
+  color: #fff;
+}
+
+.ui-tooltip {
+  background: black;
+  font: 10px "Helvetica Neue", Sans-Serif;
+  color: white;
+}
+
+#map path {
+  fill: #ccc;
+  stroke: #fff;
+  opacity: 1.0;
+}
+
+.bar {
+  stroke: #fff;
+  stroke-width: 0;
+}
+
+.bar.positive {
+  fill: red;
+}
+
+.bar.negative {
+  fill: green;
+}
+
+.input-group-addon {
+  color: #000;
+}
+
+ul {
+    list-style-type: none;
+}
+
+

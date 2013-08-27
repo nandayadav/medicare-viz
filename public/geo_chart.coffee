@@ -102,13 +102,17 @@ class HexChart
   xIndicator: (d) =>
    #d.avg_total_payments;
     if @indicator == 'payments' then d.avg_total_payments else d.avg_covered_charges
+    
+  mouseOver: (d) =>
+    console.log("Moused over")
   
     
   render: () ->
     if @indicator == 'charges'
       @renderComparison()
     points = []
-    #d3.select(".brush").call(@brush.clear())
+    @svg.select(".brush").call(@brush.clear())
+    @svg.select(".brush").remove()
     #@xScale.domain([0, d3.max(@data, this.xIndicator)])
     @xScale.domain(d3.extent(@data, @xIndicator)).nice()
     @xAxis.scale(@xScale)
@@ -138,8 +142,8 @@ class HexChart
         .attr("d", @hexbin.hexagon())
         .attr("transform", (d) -> "translate(" + d.x + "," + d.y + ")" )
         .style("fill", (d) => @color(d.length))
+        .on("mouseover", @mouseOver)
         
-    #@svg.select(".brush").remove()
         
     @svg.append("g")
           .attr("class", "brush")
@@ -229,6 +233,7 @@ class GeoChart
   handleClick: (d) =>
     url = "/providers/" + d.provider_id
     that = @
+    $(".step2").removeClass("hidden")
     dest
     if ($('#difference').offset().top > $(document).height() - $(window).height())
       dest = $(document).height() - $(window).height()
@@ -236,6 +241,7 @@ class GeoChart
       dest = $('#difference').offset().top
       
     $('html,body').animate({scrollTop: dest}, 500, 'swing')
+    
     d3.json url, (error, data) ->
       # that.barChart.render(data)
       that.barChart.renderWithSelection(data, d.diagnostic_related_group_id)
@@ -504,6 +510,7 @@ second = null
 
 $ ->
   $(".dropdown-menu").on("click", "li a", (e) ->
+    e.preventDefault()
     $target = $(e.currentTarget)
     id = $target.data('id')
     $(".icon-spinner").show()
@@ -552,6 +559,7 @@ renderContainer = (error, data) ->
   first.render()
   first.geo.renderProviders(data)
   second.render()
+  $(".step1").removeClass("hidden")
   $(".icon-spinner").hide()
   
 # $ ->

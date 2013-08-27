@@ -9,110 +9,15 @@
     <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet"/>
     <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet"/>
     <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
-    <style>
-
-circle {
-  stroke: #000;
-  stroke-width: 0.2px;
-  fill: #C34BBD;
-  fill-opacity: 0.5;
-}
-
-text {
-  fill: #fff;
- }
-    
-.axis line {
-  fill: none;
-  stroke-width: 2.0px;
-  stroke: #ebebeb;
-}
-.axis path {
-  fill: none;
-  stroke: #ebebeb;
-  shape-rendering: crispEdges;
-}
-
-/*.users {
-  stroke: none;
-}*/
-
-.songs {
-  stroke: none;
-}
-
-line {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1px;
-/*  shape-rendering: crispEdges;*/
-}
-
-
-.brush .extent {
-  stroke: #fff;
-  fill-opacity: 0.325;
-  shape-rendering: crispEdges;
-}
-
-.hexagon {
-  fill: none;
-/*  stroke: #0B221D;
-  stroke-width: .5px;*/
-}
-
-.inactive {
-  display: none;
-}
-
-body {
-  background-color: #000;
-}
-
-#controls {
-  margin-left: 10px;
-  color: #fff;
-}
-
-.ui-tooltip {
-  background: black;
-  font: 10px "Helvetica Neue", Sans-Serif;
-  color: white;
-}
-
-#map path {
-  fill: #ccc;
-  stroke: #fff;
-  opacity: 1.0;
-}
-
-.bar {
-  stroke: #fff;
-  stroke-width: 0;
-}
-
-.bar.positive {
-  fill: red;
-}
-
-.bar.negative {
-  fill: green;
-}
-
-
-
-
-</style>
+    <link href="css/custom.css" rel="stylesheet" />
+ 
   </head>
-  <body style="background-color: #1B4550">
+  <body>
     <div class="container" style="margin-top: 20px;">
-      <div class="btn-group pull-right btn-group-sm">
-        <a href="index.html" class="btn btn-default active">DRG</a>
-        <a href="states.html" class="btn btn-default">States</a>
-        <a href="index.html" class="btn btn-default">About</a>
-      </div>
-      <div class="row" style="color: white;">
+      <a href="#about" class="pull-right">About</a>
+      <div class="row">
         <!-- Split button -->
+        
         <div class="btn-group btn-group-sm">
           <button type="button" class="btn btn-default" id="select-msg">Select a DRG(Diagnostic Related Group) to get started</button>
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -121,12 +26,22 @@ body {
           <ul class="dropdown-menu">
           </ul>
         </div>
-        <i class="icon-spinner icon-spin icon-large" style="color: #fff; display: none;"></i>
+        <i class="icon-spinner icon-spin icon-large" style="display: none;"></i>
         <hr/>
       </div>
-      <div class="row">
+      <div id="starting-info" class="row">
+          <h5>
+            <span class="badge">1</span> Please select DRG to get started
+            <span class="badge">2</span> Filter/Narrow down selection in HexBin chart
+            <span class="badge">3</span> Click on bubble on Map to see details for the Provider
+          </h5>
+      </div>
+      <div class="row hidden step1">
+        
+        <p>HeatMap/Distribution of Charges & Payments for all providers. Hover over and click/drag to select a region to narrow down selection. Click on region to de-selectd 
+          the brushed area</p>
         <div id="chart" class="col-md-8"></div>
-        <div class="col-md-4 pull-right" style="color: #fff;">
+        <div class="col-md-4 pull-right">
           <br/>
           <p>Medicare on average paid <span class="label label-danger" id="difference-ratio"></span> of total charges<br/>
           *(Based on weighted means)</p>
@@ -136,9 +51,9 @@ body {
           </div>
         </div>
       </div>
-      <div class="row">
+      <div class="row hidden step1">
         
-        <div id="provider-info" style="color: white;">
+        <div id="provider-info">
           <p>
             Displaying <span class="label label-danger" id="provider-count"></span> providers with Total charges between 
             <span class="label label-danger" id="charges-left"></span> and <span class="label label-danger" id="charges-right"></span> And
@@ -149,9 +64,9 @@ body {
         <hr/>
       </div>
       
-      <div class="row" style="min-height: 610px;">
+      <div class="row hidden step1" style="min-height: 610px;">
         <div id="map" class="col-md-9"></div>
-        <div class="col-md-3" style="min-height: 210px;padding-top: 5px; color: #fff; padding-left: 45px;">
+        <div class="col-md-3" style="min-height: 210px;padding-top: 5px; padding-left: 45px;">
           <table class="table table-condensed" id="least-expensive">
             <thead>
               <tr>
@@ -175,27 +90,24 @@ body {
           </table>  
         </div>
       </div>
-      <hr/>
+      <hr class="step1 hidden"/>
       
-      <div class="row" style="color: #fff;" href="#difference">
-        <h5 class="col-md-6">Difference Chart comparing DRG payments against National/State Averages</h5>
+      <div class="row hidden step2" href="#difference">
+        <h5 class="col-md-6">Difference Chart shows how much is Medicare paying more or less for a DRG compared to National/State Averages</h5>
         <span>Comparing</span>
         <div class="btn-group btn-group-sm" id="comparator">
           <a href="#" class="btn btn-default active btn-success" >National</a>
           <a href="#" class="btn btn-default">State</a>
         </div>
       </div>
-      <div class="row" style="margin-top: 10px;">
+      <div class="row hidden step2" style="margin-top: 10px;">
         <div class="col-md-8" id="difference" style="min-height: 530px;">
-<!--         <div class="input-group input-group-sm" id="provider-selector">
-          <input type="text" class="form-control typeahead" placeholder="Find a Provider" style="color: #fff;">
-        </div> -->
         </div>
         
         <div class="col-md-4" id="provider-details">
           
-          <h6 style="color: #fff;">Provider Details</h6>
-          <span id="p-name" style="color: #fff;"></span>
+          <h6>Provider Details</h6>
+          <span id="p-name"></span>
           <div class="input-group input-group-sm" style="margin-bottom: 2px;">
             <span class="input-group-addon"># of DRGs:</span>
             <input type="text" class="form-control" id="p-drg-count">
@@ -210,8 +122,8 @@ body {
           </div>
         </div>
         <div class="col-md-4" id="drg-details" style="margin-top: 20px;">
-          <h6 style="color: #fff;">DRG Details</h6>
-          <span id="drg-name" style="color: #fff;"></span>
+          <h6>DRG Details</h6>
+          <span id="drg-name"></span>
           <div class="input-group input-group-sm" style="margin-bottom: 2px;">
             <span class="input-group-addon">Avg Charges:</span>
             <input type="text" class="form-control" id="drg-charges">
@@ -233,6 +145,48 @@ body {
             <input type="text" class="form-control" id="drg-national-payments">
           </div>
         </div>
+      </div>
+      
+      <div class="row" id="about" href="#about">
+        <h2>Visualizing Hospital Charges & Payments By Medicare - Inpatient Data</h2>
+        <hr/>
+        <p>This interactive visualization uses a Top down approach to explore how charges and actual payments vary across US hospital for top 100 DRGs(Diagnostic Related Group). It is composed of the folllowing
+          3 charts to achieve that.</p>
+        <ul>
+          <li>Hexbin Chart(Heatmap)<li>
+            <p>This chart shows the distribution/density of the chose DRG. Not only can users see range of the charges/payments across US for same DRG, but they can also see
+              where most hospitals cluster towards. Selection/Brushing of a particular subset of range allows users to narrow down criteria for Avg charges and Payments and see which hospitals/regions 
+              get paid more by Medicare for same exact range of Charges and vice versa.
+            </p>
+          <li>Geo-Map</li>
+            <p>This maps all relevant providers to currently selected DRG on US map. When user changes selection in Hexbin chart, it updates this map accordingly by only showing those providers
+               that meet the criteria. The sidebar section shows most expensive and least expensive proviers within the currently selected criteria. Hovering over a provider bubble in map displays
+               some info about it(like name, location, charges, payments and number of discharges). 
+             </p>
+          <li>Difference Chart</li>
+            <p>This comparison chart shows if medicare has paid more or less for all the DRGs of selected provider. Users can filter the comparison to National Average or State
+              Average and see how the individual DRGs payments go up or down accordingly. Hovering over the DRG bars show details of that particular DRG on sidebar
+            </p>
+            
+        </ul>
+      </div>
+      <div class="row">
+        <h4>Data Sources</h4>
+        <ul>
+          <li><a href="http://visualizing.org/datasets/medicare-provider-charge-data-inpatient">1. CMS Inpatient Data</a></li>
+          <li><a href="http://visualizing.org/datasets/medicare-provider-charge-data-inpatient">2. CMS Inpatient State Averages Data</a></li>
+        </u>
+      </div>
+      <div class="row">
+        <h4>Technical Details</h4>
+        <p>This interactive was built using various open-source libraries: d3.js, jquery, rails-api, Twitter bootstrap, Coffeescript</p>
+      </div>
+      <div class="row" style="padding-bottom: 20px;">
+        <h4>Author</h4>
+        Nanda Yadav
+        <a href="http://twitter.com/nandayadav">@nandayadav</a> | 
+        <a href="http://github.com/nandayadav">Github</a><br/>
+        <a href="http://github.com/nandayadav/medicare-viz">Source Code</a>
       </div>
     </div>
     

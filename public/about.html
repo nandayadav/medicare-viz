@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>In-patient Hospital Charges : Interactive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
+  </head>
+  <body style="background-color: #1B4550; color: #fff;" >
+    <div class="container" style="margin-top: 20px;">
+      <div class="btn-group pull-right btn-group-sm">
+        <a href="index.html" class="btn btn-default">DRG</a>
+        <a href="about.html" class="btn btn-default active">About</a>
+      </div>
+      <div class="row">
+        <h2>Visualizing Hospital Charges & Payments By Medicare - Inpatient Data</h2>
+        <hr/>
+        <p>This interactive visualization uses a Top down approach to explore how charges and actual payments vary across US hospital for top 100 DRGs(Diagnostic Related Group). It is composed of the folllowing
+          3 charts to achieve that.</p>
+        <ul>
+          <li>Hexbin Chart(Heatmap)<li>
+            <p>This chart shows the distribution/density of the chose DRG. Not only can users see range of the charges/payments across US for same DRG, but they can also see
+              where most hospitals cluster towards. Selection/Brushing of a particular subset of range allows users to narrow down criteria for Avg charges and Payments and see which hospitals/regions 
+              get paid more by Medicare for same exact range of Charges and vice versa.
+            </p>
+          <li>Geo-Map</li>
+            <p>This maps all relevant providers to currently selected DRG on US map. When user changes selection in Hexbin chart, it updates this map accordingly by only showing those providers
+               that meet the criteria. The sidebar section shows most expensive and least expensive proviers within the currently selected criteria. Hovering over a provider bubble in map displays
+               some info about it(like name, location, charges, payments and number of discharges). 
+             </p>
+            
+        </ul>
+      </div>
+      <div class="row">
+        Data Sources: All of the data for the project is provided by CMS and is availble at ...
+      </div>
+    </div>
+  </body>
+</html>
